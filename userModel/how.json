@@ -1,0 +1,106 @@
+{
+    "subPlan": [
+      {
+        "goal": {
+          "description": "Secure a job in Software Engineering or Machine Learning",
+          "deadline": "2025-03-31"
+        },
+        "justification": "Jimmy has a strong passion for continuous improvement, making a positive difference, and leveraging his skills in programming and problem-solving.",
+        "actionItem": [
+          {
+            "what": "Complete and refine resume and LinkedIn profile",
+            "when": "2025-01-07",
+            "duration": "2 hours"
+          },
+          {
+            "what": "Apply to at least 5 jobs weekly",
+            "when": "Mondays and Thursdays",
+            "duration": "3 hours each day"
+          },
+          {
+            "what": "Practice technical interviews using Leetcode and mock interviews",
+            "when": "Tuesdays, Thursdays, and Saturdays",
+            "duration": "2 hours each session"
+          },
+          {
+            "what": "Attend 2 networking events monthly",
+            "when": "Second and fourth Wednesdays of the month",
+            "duration": "3 hours per event"
+          }
+        ]
+      },
+      {
+        "goal": {
+          "description": "Move out of parents' house",
+          "deadline": "2025-07-01"
+        },
+        "justification": "Jimmy values independence and wants to establish a stable personal environment for growth and social development.",
+        "actionItem": [
+          {
+            "what": "Research affordable housing options",
+            "when": "Weekends in February",
+            "duration": "3 hours per weekend"
+          },
+          {
+            "what": "Save $1000 per month for moving costs and rent",
+            "when": "Monthly until move-out date",
+            "duration": "Ongoing"
+          },
+          {
+            "what": "Visit potential apartments",
+            "when": "March weekends",
+            "duration": "3 hours per weekend"
+          }
+        ]
+      },
+      {
+        "goal": {
+          "description": "Build healthy habits for personal growth and stability",
+          "deadline": "2025-06-01"
+        },
+        "justification": "Good health and stable habits will enable Jimmy to sustain his ambition and efforts toward other goals.",
+        "actionItem": [
+          {
+            "what": "Develop a morning routine with exercise and mindfulness",
+            "when": "Daily, 7:00 AM",
+            "duration": "1 hour"
+          },
+          {
+            "what": "Plan and prepare healthy meals",
+            "when": "Sundays",
+            "duration": "2 hours"
+          },
+          {
+            "what": "Maintain a sleep schedule of 8 hours nightly",
+            "when": "Daily, 10:00 PM to 6:00 AM",
+            "duration": "8 hours"
+          }
+        ]
+      },
+      {
+        "goal": {
+          "description": "Make new friends and expand social circle",
+          "deadline": "2026-01-01"
+        },
+        "justification": "Jimmy values connections with others and wants to build meaningful relationships.",
+        "actionItem": [
+          {
+            "what": "Join local interest groups or clubs",
+            "when": "January to March, Saturdays",
+            "duration": "2 hours per session"
+          },
+          {
+            "what": "Attend social mixers or community events monthly",
+            "when": "Last Friday of each month",
+            "duration": "3 hours"
+          },
+          {
+            "what": "Host a casual gathering for new acquaintances",
+            "when": "April and October",
+            "duration": "4 hours"
+          }
+        ]
+      }
+    ]
+  }
+  

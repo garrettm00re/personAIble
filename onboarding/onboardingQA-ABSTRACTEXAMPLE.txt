@@ -1,0 +1,47 @@
+### SIGN UP
+AI:  Do you mind answering a few personal questions?
+User: Not at all.
+AI: What's your DOB?
+User: I was born on January 1st, 2000.
+AI: What's your gender?
+User: Male.
+
+### INTRODUCTION
+AI: Hi, I'm personAIble, it's great to meet you!
+User: I'm Jimmy, it's nice to meet you too.
+AI: How are you doing today?
+User: I'm doing great, thanks for asking. How about you?
+
+AI: I'm just excited to get to know you. Can you tell me what brought you here today?
+User: I've heard personAIble is a great tool for helping people get where they want to be.
+AI: Exactly! What specifically are you looking for? 
+User: Right now, I'm looking for a few things. I want to move out of my parents house, so I'm looking for a job. I want to make new friends, meet a girl, and start cracking away at my dream to change the world.
+AI: Anything else?
+User: I want to build healthy habits and improve steadily. I want to give the world my best.
+AI: It's awesome that you want to get your life started and make a difference! I'm sure you'll do great. What motivates you to reach for these things?
+User: I've realized I love two things: life, and the people in it. That said, I just want to do right by people and experience the world in the process.
+AI: That's fantastic! What are you doing to get there?
+User: I've been applying to jobs regularly, especially those that express interest in me. I've also been doing leetcode problems nearly daily and doing my best to network. I work on fun projects and pursue good fun in moderation to stay sane.
+AI: What types of jobs are you looking for?
+User: I am looking for SWE and ML roles that target early career professionals.
+AI: Exciting! Tell me more about your work experience.
+User: I recently worked as a Data Scientist at a startup. There, I built a pipeline for predicting cat's breed composition based on their DNA. I've worked in the service industry for some time as well
+AI: Sounds like you have a lot to work with! Do you have a four year degree? Bootcamp experience? Do you code regularly?
+User: I graduated from UC Berkeley with a B.S. in Electrical Engineering and Computer Science. I've also completed a few bootcamps. I code regularly, sometimes leetcoding, sometimes working on ambitious personal projects.
+AI: Very cool! When you're not looking for a job, what do you like to do?
+User: I mainly read a lot of news, play games on occassion, and build things in python.
+AI: Those are great ways to balance out the job hunting! It sounds like you're doing great. With consistent effort, you'll learn a lot about yourself and make a ton of progress. Speaking of, tomorrow, we'll get started with your daily roundup. What time (towards the end of the day) would you like to start a quick Q&A session where we'll go over your day?
+User: **Select time** -> 10:00pm.
+AI: Perfect! Each day we'll discuss how well you did on your plan, update your todo list, and plan for the next day. We'll both learn a lot about you this way. Please populate the todo list below, we'll use it in making your first plan.
+User: **Populate todo list** (importance, urgency, expected time to complete)
+
+### PLAN CREATION
+AI: **Create plan** (based on todo list) Based on your todo list and goals, I've made the plan below. Edit it as you see fit and press enter to submit.
+
+AI: Thank you for answering all those questions! Now we can move on to the next phase.
+
+
+
+
+
+

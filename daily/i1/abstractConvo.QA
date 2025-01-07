@@ -1,0 +1,36 @@
+AI: Hey {user.name}, let's get started with your daily roundup. How was your day? Give me as much or as little detail as you're comfortable with. 
+User: <response>
+AI: Please provide a detailed account of what you've done since {daily.session_time} yesterday. (Shift + Enter to separate activities, Enter to submit)
+User: ** inputs events, leading to events.tsv **
+
+AI: **finished = compute completed todo items**
+if finished != None:
+    AI: Just to be clear, you completed these items:
+    AI: **list completed todo items in editable interface**
+    User: ** edits where needed **
+else:
+    AI: You didn't complete any todo items, right?
+    User: Correct.
+
+AI: What could have gone better?
+User: I could have gotten a better night's rest the night before. I should have embraced the limited opportunity to spend time with my friends and nixed the idea of working. I wasn't realistic with my goal to work four hours.
+
+AI: Do you have any todo items to add to the list? 
+User: yes or no
+if yes:
+    AI: Enter the new todo items here
+    User: ** inputs importance, urgency, and expected time to complete for each new todo item, leading to a todo.tsv update **
+
+AI: Do you have any comittments tomorrow? ### google calendar integration would be VERY nice
+User: Yes or no
+if yes:
+    AI: Enter the comittments here
+    User: ** inputs comittments, leading to a calendar.tsv update for {nextDay} **
+
+AI: ** Create a plan for tomorrow based on the todo items gathered ** -> display in a nice,editable interface
+AI: What do you think of this plan? Feel free to make changes as you see fit.
+User: ** edits plan as needed **
+
+### TO ADD:
+rate your day 1-10
+rate your feeling 1-10

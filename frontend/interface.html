@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Q&A Interface</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .top-bar {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .top-bar .links {
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-bar a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .top-bar a:hover {
+            background-color: #555;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .qa-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #d1e7dd;
+        }
+
+        .system-message {
+            align-self: flex-start;
+            background-color: #f8d7da;
+        }
+
+        .input-bar {
+            display: flex;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-top: 1px solid #ddd;
+        }
+
+        .input-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .input-bar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        .input-bar button:hover {
+            background-color: #0056b3;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <span id="back-arrow" class="hidden">&#8592;</span>
+        <div class="links">
+            <a href="#root" onclick="navigate('root')">Home</a>
+            <a href="#who" onclick="navigate('who')">Who?</a>
+            <a href="#whereTo" onclick="navigate('whereTo')">Where To?</a>
+            <a href="#how" onclick="navigate('how')">How?</a>
+            <a href="#settings" onclick="navigate('settings')">&#128295;</a>
+        </div>
+    </div>
+    <div id="root" class="content">
+        <div class="qa-container" id="qa-container"></div>
+        <div class="input-bar">
+            <input type="text" id="user-input" placeholder="Type your question here...">
+            <button onclick="submitQuestion()">Submit</button>
+        </div>
+    </div>
+    <div id="who" class="content hidden">Who? Page Content</div>
+    <div id="whereTo" class="content hidden">Where To? Page Content</div>
+    <div id="how" class="content hidden">How? Page Content</div>
+    <div id="settings" class="content hidden">Settings Page Content</div>
+
+    <script>
+        const backArrow = document.getElementById('back-arrow');
+        const pages = document.querySelectorAll('.content');
+
+        function navigate(targetId) {
+            pages.forEach(page => page.classList.add('hidden'));
+            document.getElementById(targetId).classList.remove('hidden');
+            backArrow.style.display = targetId === 'root' ? 'none' : 'inline';
+        }
+
+        async function submitQuestion() {
+            const input = document.getElementById('user-input');
+            const question = input.value.trim();
+
+            if (question) {
+                addMessage(question, 'user');
+                input.value = '';
+                
+                try {
+                    const response = await fetch('http://localhost:5000/api/ask', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ question: question })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        addMessage(data.answer, 'system');
+                    } else {
+                        addMessage('Error: ' + data.error, 'system');
+                    }
+                } catch (error) {
+                    addMessage('Error connecting to the server', 'system');
+                    console.error('Error:', error);
+                }
+            }
+        }
+
+        function addMessage(text, type) {
+            const qaContainer = document.getElementById('qa-container');
+            const message = document.createElement('div');
+            message.className = `message ${type}-message`;
+            message.textContent = text;
+            qaContainer.appendChild(message);
+            qaContainer.scrollTop = qaContainer.scrollHeight;
+        }
+
+        // Initialize back button
+        backArrow.addEventListener('click', () => navigate('root'));
+
+        navigate('root'); // Default page
+    </script>
+</body>
+</html>

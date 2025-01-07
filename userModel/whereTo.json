@@ -1,0 +1,39 @@
+{
+  "desires": [
+    {
+      "description": "Move out of parents' house",
+      "strength": 9,
+      "timeliness": "6 months"
+    },
+    {
+      "description": "Secure a job in Software Engineering or Machine Learning",
+      "strength": 10,
+      "timeliness": "3 months"
+    },
+    {
+      "description": "Make new friends and expand social circle",
+      "strength": 7,
+      "timeliness": "1 year"
+    },
+    {
+      "description": "Meet a romantic partner",
+      "strength": 8,
+      "timeliness": "1 year"
+    },
+    {
+      "description": "Work toward changing the world through innovative projects",
+      "strength": 10,
+      "timeliness": "5 years"
+    },
+    {
+      "description": "Build healthy habits for personal growth and stability",
+      "strength": 8,
+      "timeliness": "6 months"
+    },
+    {
+      "description": "Improve steadily and give the world the best effort",
+      "strength": 9,
+      "timeliness": "Ongoing"
+    }
+  ]
+}
