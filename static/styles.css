@@ -7,12 +7,18 @@ body {
 }
 
 .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
     background-color: #333;
     color: white;
     padding: 10px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    border-bottom: 1px solid #ddd;
+    z-index: 1000;
 }
 
 .top-bar .links {
@@ -32,10 +38,14 @@ body {
 }
 
 .content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+    height: calc(100vh - 40px); /* Subtract height of top-bar */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 20px;
+    position: fixed;
+    top: 40px; /* Height of top-bar */
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .qa-container {
@@ -45,6 +55,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 20px;
 }
 
 .message {
@@ -68,6 +79,11 @@ body {
     padding: 10px;
     background-color: #f1f1f1;
     border-top: 1px solid #ddd;
+    position:fixed;
+    top:87vh;
+    bottom:4vh;
+    left:0;
+    right:0;
 }
 
 .input-bar input {
@@ -93,4 +109,51 @@ body {
 
 .hidden {
     display: none;
+}
+
+.data-section {
+    padding: 1rem;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.info-table th {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.info-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+.info-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.info-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+.plan-section {
+    margin-bottom: 2rem;
+}
+
+.action-table {
+    margin-top: 1rem;
+}
+
+html {
+    scroll-behavior: smooth;
 }

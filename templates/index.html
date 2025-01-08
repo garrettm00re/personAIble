@@ -33,12 +33,6 @@
         const backArrow = document.getElementById('back-arrow');
         const pages = document.querySelectorAll('.content');
 
-        function navigate(targetId) {
-            pages.forEach(page => page.classList.add('hidden'));
-            document.getElementById(targetId).classList.remove('hidden');
-            backArrow.style.display = targetId === 'root' ? 'none' : 'inline';
-        }
-
         async function submitQuestion() {
             const input = document.getElementById('user-input');
             const question = input.value.trim();
@@ -83,6 +77,164 @@
         backArrow.addEventListener('click', () => navigate('root'));
 
         navigate('root'); // Default page
+        
+        function formatSubPlan(subPlan) {
+        let html = '';
+        
+        subPlan.forEach(plan => {
+            html += `
+                <div class="plan-section">
+                    <h3>${plan.goal.description}</h3>
+                    <p><strong>Deadline:</strong> ${plan.goal.deadline}</p>
+                    <p><strong>Justification:</strong> ${plan.justification}</p>
+                    
+                    <table class="action-table">
+                        <thead>
+                            <tr>
+                                <th>Action Item</th>
+                                <th>When</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(plan.actionItems || plan.actionItem || []).map(item => `
+                                <tr>
+                                    <td>${item.what}</td>
+                                    <td>${item.when}</td>
+                                    <td>${item.duration}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        });
+        
+        return html;
+    }
+
+    function formatWho(data) {
+        let html = '<div class="data-section">';
+        for (const [key, value] of Object.entries(data)) {
+            html += `
+                <table class="info-table">
+                    <thead>
+                        <tr>
+                            <th colspan="${Array.isArray(value) ? 1 : 2}">${key}</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            if (Array.isArray(value)) {
+                value.forEach(item => {
+                    html += `<tr><td>${item}</td></tr>`;
+                });
+            } else {
+                html += `<tr><td>${value}</td></tr>`;
+            }
+            
+            html += `</tbody></table>`;
+        }
+        return html + '</div>';
+    }
+
+    function formatWhereTo(data) {
+        let html = `
+            <table class="info-table">
+                <thead>
+                    <tr>
+                        <th>Desire</th>
+                        <th>Strength</th>
+                        <th>Timeliness</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+        
+        data.desires.forEach(desire => {
+            html += `
+                <tr>
+                    <td>${desire.description}</td>
+                    <td>${desire.strength}</td>
+                    <td>${desire.timeliness}</td>
+                </tr>`;
+        });
+        
+        return html + '</tbody></table>';
+    }
+
+    function formatHow(data) {
+        let html = '';
+        data.subPlan.forEach(plan => {
+            html += `
+                <div class="plan-section">
+                    <table class="info-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Goal: ${plan.goal.description}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Deadline:</strong></td>
+                                <td>${plan.goal.deadline}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Justification:</strong></td>
+                                <td>${plan.justification}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="info-table action-table">
+                        <thead>
+                            <tr>
+                                <th>Action Item</th>
+                                <th>When</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(plan.actionItems || plan.actionItem || []).map(item => `
+                                <tr>
+                                    <td>${item.what}</td>
+                                    <td>${item.when}</td>
+                                    <td>${item.duration}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        });
+        return html;
+    }
+
+    async function navigate(targetId) {
+        pages.forEach(page => page.classList.add('hidden'));
+        const targetPage = document.getElementById(targetId);
+        targetPage.classList.remove('hidden');
+        backArrow.style.display = targetId === 'root' ? 'none' : 'inline';
+        
+        if (targetId !== 'root' && targetId !== 'settings') {
+            try {
+                const response = await fetch(`/api/${targetId}`);
+                const data = await response.json();
+                
+                switch(targetId) {
+                    case 'who':
+                        targetPage.innerHTML = formatWho(data);
+                        break;
+                    case 'whereTo':
+                        targetPage.innerHTML = formatWhereTo(data);
+                        break;
+                    case 'how':
+                        targetPage.innerHTML = formatHow(data);
+                        break;
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                targetPage.innerHTML = '<p>Error loading content</p>';
+            }
+        }
+    }
     </script>
 </body>
 </html>
