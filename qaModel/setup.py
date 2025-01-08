@@ -1,4 +1,4 @@
-from langchain.document_loaders import JSONLoader
+from langchain_community.document_loaders import JSONLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from .model import PersonAIble
 
@@ -9,7 +9,18 @@ def load_initial_data():
         jq_schema='.',
         text_content=False
     )
-    # ... other loaders ...
+    
+    loader2 = JSONLoader(
+        file_path="userModel/whereTo.json",
+        jq_schema='.',
+        text_content=False
+    )
+    
+    loader3 = JSONLoader(
+        file_path="userModel/who.json",
+        jq_schema='.',
+        text_content=False
+    )
     
     # Combine documents
     documents = []
@@ -25,7 +36,7 @@ def load_initial_data():
     all_splits = text_splitter.split_documents(documents)
     
     # Create and initialize model
-    model = PersonAIble()
+    model = PersonAIble(k = len(all_splits))
     model.load_data(all_splits)
     
     return model

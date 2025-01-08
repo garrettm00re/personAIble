@@ -6,6 +6,9 @@ from langchain_core.documents import Document
 from typing_extensions import List, TypedDict
 import numpy as np
 import matplotlib.pyplot as plt
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
 
 class State(TypedDict):
     question: str
@@ -13,13 +16,14 @@ class State(TypedDict):
     answer: str
 
 class PersonAIble:
-    def __init__(self):
+    def __init__(self, k = 0):
         # Initialize once, reuse for all questions
         self.embeddings = None
         self.vector_store = None
         self.llm = None
         self.graph = None
         self.prompt = None
+        self.k = k
         
     def initialize(self):
         """Lazy loading of expensive components"""
@@ -39,15 +43,29 @@ class PersonAIble:
         graph_builder.add_edge(START, "retrieve")
         self.graph = graph_builder.compile()
     
-    def retrieve(self, state: State):
-        # Your existing retrieve function
-        # ... (same as notebook)
-        pass
+    def retrieve(self, state: State, minRelevance = 0.2, stdDev = 0.5, document = None):
+        raw_results = self.vector_store.similarity_search_with_score(state["question"], self.k) # score is cosine similarity
+        if len(raw_results) == 1:
+            return {"context": [raw_results[0][0]]}
+        else:
+            # I think absolute value of score measures true similarity, will test this hypothesis somehow
+            scores = np.array([cosine_similarity for _, cosine_similarity in raw_results])
+            indicesAboveMinRelevance = np.where(scores > minRelevance)[0]
+            #meanScore = np.mean(scores)
+            #stdScore = np.std(scores)
+
+            if len(indicesAboveMinRelevance):
+                return {"context": [raw_results[i][0] for i in indicesAboveMinRelevance]} # return all documents above minRelevance
+            else:
+                #maxScoreIndex = np.argmax(scores)
+                return {"context": [raw_results[0][0]]} # return the most relevant documen
     
     def generate(self, state: State):
-        # Your existing generate function
-        # ... (same as notebook)
-        pass
+        print("state['context']", state["context"])
+        docs_content = "\n\n".join(doc.page_content for doc in state["context"])
+        messages = self.prompt.invoke({"question": state["question"], "context": docs_content})
+        response = self.llm.invoke(messages)
+        return {"answer": response.content}
     
     def load_data(self, documents):
         """Load documents into vector store"""
