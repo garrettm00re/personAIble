@@ -8,13 +8,13 @@
 </head>
 <body>
     <div class="top-bar">
-        <span id="back-arrow" class="hidden">&#8592;</span>
         <div class="links">
+            <a href="#root" id="back-arrow" class="hidden" onclick="navigate('root')">&#8592;</a>
             <a href="#root" onclick="navigate('root')">Home</a>
             <a href="#who" onclick="navigate('who')">Who?</a>
             <a href="#whereTo" onclick="navigate('whereTo')">Where To?</a>
             <a href="#how" onclick="navigate('how')">How?</a>
-            <a href="#settings" onclick="navigate('settings')">&#128295;</a>
+            <!-- <a href="#settings" onclick="navigate('settings')">&#128295;</a> -- >
         </div>
     </div>
     <div id="root" class="content">
@@ -27,7 +27,7 @@
     <div id="who" class="content hidden">Who? Page Content</div>
     <div id="whereTo" class="content hidden">Where To? Page Content</div>
     <div id="how" class="content hidden">How? Page Content</div>
-    <div id="settings" class="content hidden">Settings Page Content</div>
+    <!-- <div id="settings" class="content hidden">Settings Page Content</div> -->
 
     <script>
         document.getElementById('user-input').addEventListener('keypress', function(event) {
@@ -309,7 +309,7 @@
         pages.forEach(page => page.classList.add('hidden'));
         const targetPage = document.getElementById(targetId);
         targetPage.classList.remove('hidden');
-        backArrow.style.display = targetId === 'root' ? 'none' : 'inline';
+        backArrow.classList.toggle('hidden', targetId === 'root');
         
         if (targetId !== 'root' && targetId !== 'settings') {
             try {
