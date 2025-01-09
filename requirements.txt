@@ -8,3 +8,4 @@ langchain-text-splitters
 numpy
 python-dotenv
 jq
+supabase

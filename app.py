@@ -41,9 +41,9 @@ def ask():
 def handle_how():
     if request.method == 'GET':
         try:
-            response = supabase.table('goals').select('desires').eq('id', 1).execute()
-            data = response.data[0]['desires'] if response.data else {}
-            return jsonify(data)
+            response = supabase.table('plans').select('subplans').eq('id', 1).execute()
+            data = response.data[0]['subplans'] if response.data else {}
+            return data
         except Exception as e:
             print(f"Error loading how data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
@@ -51,7 +51,8 @@ def handle_how():
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            supabase.table('goals').update({"desires": new_data}).eq('id', 1).execute()
+            result = supabase.table('plans').update({"subplans": new_data}).eq('id', 1).execute()
+            print("RESULT: ", result)
             return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
             print(f"Error updating how data: {str(e)}", flush=True)
@@ -63,7 +64,7 @@ def handle_who():
         try:
             response = supabase.table('profiles').select('information').eq('id', 1).execute()
             data = response.data[0]['information'] if response.data else {}
-            return jsonify(data)
+            return data
         except Exception as e:
             print(f"Error loading who data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
@@ -72,7 +73,8 @@ def handle_who():
         try:
             new_data = request.json
             # Update data in Supabase
-            supabase.table('profiles').update({"information": new_data}).eq('id', 1).execute()
+            result = supabase.table('profiles').update({"information": new_data}).eq('id', 1).execute()
+            print("RESULT: ", result)
             return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
             print(f"Error updating who data: {str(e)}", flush=True)
@@ -82,9 +84,9 @@ def handle_who():
 def handle_where_to():
     if request.method == 'GET':
         try:
-            response = supabase.table('plans').select('subplans').eq('id', 1).execute()
-            data = response.data[0]['subplans'] if response.data else {}
-            return jsonify(data)
+            response = supabase.table('goals').select('desires').eq('id', 1).execute()
+            data = response.data[0]['desires'] if response.data else {}
+            return data
         except Exception as e:
             print(f"Error loading whereTo data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
@@ -92,7 +94,8 @@ def handle_where_to():
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            supabase.table('plans').update({"subplans": new_data}).eq('id', 1).execute()
+            result = supabase.table('goals').update({"desires": new_data}).eq('id', 1).execute()
+            print("RESULT: ", result)
             return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
             print(f"Error updating whereTo data: {str(e)}", flush=True)
