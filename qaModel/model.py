@@ -34,7 +34,7 @@ class PersonAIble:
             # Only load these when first needed
             self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
             self.vector_store = InMemoryVectorStore(self.embeddings)
-            self.llm = ChatOpenAI(model="gpt-4-turbo-preview")
+            self.llm = ChatOpenAI(model="chatgpt-4o-latest")
             self.user = json.load(open("./charlesRiverAssets/who.json"))["Name"]
             self.prompt = lambda state: f"""You are {self.user}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
             Question: {state['question']}

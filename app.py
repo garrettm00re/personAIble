@@ -3,8 +3,14 @@ import os, sys
 sys.path.append(os.getcwd())
 from qaModel import *
 import json
+from supabase import create_client
 
 app = Flask(__name__)
+
+# Initialize Supabase client
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
+supabase = create_client(supabase_url, supabase_key)
 
 # Initialize the AI model
 ai_model = load_initial_data()
@@ -33,68 +39,63 @@ def ask():
 
 @app.route('/api/how', methods=['GET', 'PUT'])
 def handle_how():
-    file_path = 'charlesRiverAssets/how.json'
     if request.method == 'GET':
         try:
-            with open(file_path, 'r') as file:
-                data = json.load(file)
+            response = supabase.table('goals').select('desires').eq('id', 1).execute()
+            data = response.data[0]['desires'] if response.data else {}
             return jsonify(data)
         except Exception as e:
-            print(f"Error loading how.json: {str(e)}", flush=True)
+            print(f"Error loading how data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
     
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            with open(file_path, 'w') as file:
-                json.dump(new_data, file, indent=2)
-            return jsonify({'message': 'File updated successfully'})
+            supabase.table('goals').update({"desires": new_data}).eq('id', 1).execute()
+            return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
-            print(f"Error updating how.json: {str(e)}", flush=True)
+            print(f"Error updating how data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/who', methods=['GET', 'PUT'])
 def handle_who():
-    file_path = 'charlesRiverAssets/who.json'
     if request.method == 'GET':
         try:
-            with open(file_path, 'r') as file:
-                data = json.load(file)
+            response = supabase.table('profiles').select('information').eq('id', 1).execute()
+            data = response.data[0]['information'] if response.data else {}
             return jsonify(data)
         except Exception as e:
-            print(f"Error loading who.json: {str(e)}", flush=True)
+            print(f"Error loading who data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
     
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            with open(file_path, 'w') as file:
-                json.dump(new_data, file, indent=2)
-            return jsonify({'message': 'File updated successfully'})
+            # Update data in Supabase
+            supabase.table('profiles').update({"information": new_data}).eq('id', 1).execute()
+            return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
-            print(f"Error updating who.json: {str(e)}", flush=True)
+            print(f"Error updating who data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/whereTo', methods=['GET', 'PUT'])
 def handle_where_to():
-    file_path = 'charlesRiverAssets/whereTo.json'
     if request.method == 'GET':
         try:
-            with open(file_path, 'r') as file:
-                data = json.load(file)
+            response = supabase.table('plans').select('subplans').eq('id', 1).execute()
+            data = response.data[0]['subplans'] if response.data else {}
             return jsonify(data)
         except Exception as e:
-            print(f"Error loading whereTo.json: {str(e)}", flush=True)
+            print(f"Error loading whereTo data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
     
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            with open(file_path, 'w') as file:
-                json.dump(new_data, file, indent=2)
-            return jsonify({'message': 'File updated successfully'})
+            supabase.table('plans').update({"subplans": new_data}).eq('id', 1).execute()
+            return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
-            print(f"Error updating whereTo.json: {str(e)}", flush=True)
+            print(f"Error updating whereTo data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

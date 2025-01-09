@@ -1,0 +1,20 @@
+Tell us why you picked your tools
+    RAG App Framework: LangChain
+        I thought it best to experiment with the more general framework for the sake of learning and versatility.
+        LangChain's flexibility helped me to explore different approaches quickly.
+        
+    LLM: gpt-4o:
+        Cost-efficient, well-liked by users, performant on benchmarking tests, and I already had an account
+    Embeddings: text-embedding-3-large
+
+    text splitters: RecursiveCharacterTextSplitter
+    loaders: 
+        JSONLoader
+        Custom "Conversation" loader
+    vector stores: InMemoryVectorStore
+    embeddings: OpenAIEmbeddings
+    front end: flask
+    back end: vercel serverless functions (python)
+    database: TBD
+    Graph: LangGraph: 
+    ThreadPoolExecutor
