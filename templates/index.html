@@ -30,6 +30,12 @@
     <div id="settings" class="content hidden">Settings Page Content</div>
 
     <script>
+        document.getElementById('user-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitQuestion();
+            }
+        });
         const backArrow = document.getElementById('back-arrow');
         const pages = document.querySelectorAll('.content');
 
@@ -125,16 +131,16 @@
                     <tbody>`;
             
             if (Array.isArray(value)) {
-                value.forEach(item => {
-                    html += `<tr><td>${item}</td></tr>`;
+                value.forEach((item, index) => {
+                    html += `<tr><td contenteditable="true" data-key="${key}" data-index="${index}">${item}</td></tr>`;
                 });
             } else {
-                html += `<tr><td>${value}</td></tr>`;
+                html += `<tr><td contenteditable="true" data-key="${key}">${value}</td></tr>`;
             }
             
             html += `</tbody></table>`;
         }
-        return html + '</div>';
+        return html + '</div>' + saveChangesButton('who');
     }
 
     function formatWhereTo(data) {
@@ -149,37 +155,37 @@
                 </thead>
                 <tbody>`;
         
-        data.desires.forEach(desire => {
+        data.desires.forEach((desire, index) => {
             html += `
                 <tr>
-                    <td>${desire.description}</td>
-                    <td>${desire.strength}</td>
-                    <td>${desire.timeliness}</td>
+                    <td contenteditable="true" data-field="description" data-index="${index}">${desire.description}</td>
+                    <td contenteditable="true" data-field="strength" data-index="${index}">${desire.strength}</td>
+                    <td contenteditable="true" data-field="timeliness" data-index="${index}">${desire.timeliness}</td>
                 </tr>`;
         });
         
-        return html + '</tbody></table>';
+        return html + '</tbody></table>' + saveChangesButton('whereTo');
     }
 
     function formatHow(data) {
         let html = '';
-        data.subPlan.forEach(plan => {
+        data.subPlans.forEach((plan, planIndex) => {
             html += `
                 <div class="plan-section">
                     <table class="info-table">
                         <thead>
                             <tr>
-                                <th colspan="2">Goal: ${plan.goal.description}</th>
+                                <th colspan="2">Goal: <span contenteditable="true" data-plan="${planIndex}" data-field="goal.description">${plan.goal.description}</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><strong>Deadline:</strong></td>
-                                <td>${plan.goal.deadline}</td>
+                                <td contenteditable="true" data-plan="${planIndex}" data-field="goal.deadline">${plan.goal.deadline}</td>
                             </tr>
                             <tr>
                                 <td><strong>Justification:</strong></td>
-                                <td>${plan.justification}</td>
+                                <td contenteditable="true" data-plan="${planIndex}" data-field="justification">${plan.justification}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -193,18 +199,110 @@
                             </tr>
                         </thead>
                         <tbody>
-                            ${(plan.actionItems || plan.actionItem || []).map(item => `
+                            ${(plan.actionItems || plan.actionItem || []).map((item, itemIndex) => `
                                 <tr>
-                                    <td>${item.what}</td>
-                                    <td>${item.when}</td>
-                                    <td>${item.duration}</td>
+                                    <td contenteditable="true" data-plan="${planIndex}" data-action="${itemIndex}" data-field="what">${item.what}</td>
+                                    <td contenteditable="true" data-plan="${planIndex}" data-action="${itemIndex}" data-field="when">${item.when}</td>
+                                    <td contenteditable="true" data-plan="${planIndex}" data-action="${itemIndex}" data-field="duration">${item.duration}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                 </div>`;
         });
-        return html;
+        return html + saveChangesButton('how');
+    }
+
+    function saveChangesButton(route) {
+        return `<div class="sticky-save-container">
+            <button class="save-button" onclick="saveChanges('${route}')">Save Changes</button>
+        </div>`;
+    }
+
+    // Add these new functions for handling edits and saves
+    let currentData = {
+        who: null,
+        whereTo: null,
+        how: null
+    };
+
+    async function saveChanges(section) {
+        try {
+            let newData;
+            
+            switch(section) {
+                case 'who':
+                    newData = {...currentData.who};
+                    document.querySelectorAll('#who td[contenteditable]').forEach(td => {
+                        const key = td.dataset.key;
+                        const index = td.dataset.index;
+                        if (index !== undefined) {
+                            if (!Array.isArray(newData[key])) newData[key] = [];
+                            newData[key][index] = td.textContent;
+                        } else {
+                            newData[key] = td.textContent;
+                        }
+                    });
+                    break;
+
+                case 'whereTo':
+                    newData = {desires: []};
+                    const rows = document.querySelectorAll('#whereTo tbody tr');
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        newData.desires.push({
+                            description: cells[0].textContent,
+                            strength: cells[1].textContent,
+                            timeliness: cells[2].textContent
+                        });
+                    });
+                    break;
+
+                case 'how':
+                    newData = {subPlan: []};
+                    document.querySelectorAll('#how .plan-section').forEach((section, planIndex) => {
+                        const plan = {
+                            goal: {
+                                description: section.querySelector(`[data-plan="${planIndex}"][data-field="goal.description"]`).textContent,
+                                deadline: section.querySelector(`[data-plan="${planIndex}"][data-field="goal.deadline"]`).textContent
+                            },
+                            justification: section.querySelector(`[data-plan="${planIndex}"][data-field="justification"]`).textContent,
+                            actionItems: []
+                        };
+
+                        section.querySelectorAll('tr').forEach(row => {
+                            const what = row.querySelector(`[data-field="what"]`);
+                            if (what) {
+                                plan.actionItems.push({
+                                    what: what.textContent,
+                                    when: row.querySelector(`[data-field="when"]`).textContent,
+                                    duration: row.querySelector(`[data-field="duration"]`).textContent
+                                });
+                            }
+                        });
+
+                        newData.subPlan.push(plan);
+                    });
+                    break;
+            }
+
+            const response = await fetch(`/api/${section}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newData)
+            });
+
+            if (!response.ok) throw new Error('Failed to save changes');
+            
+            alert('Changes saved successfully!');
+            await navigate(section); // Refresh the view
+            
+        } catch (error) {
+            console.error('Error saving changes:', error);
+            alert('Failed to save changes. Please try again.');
+        }
     }
 
     async function navigate(targetId) {
@@ -217,6 +315,7 @@
             try {
                 const response = await fetch(`/api/${targetId}`);
                 const data = await response.json();
+                currentData[targetId] = data; // Store the current data
                 
                 switch(targetId) {
                     case 'who':

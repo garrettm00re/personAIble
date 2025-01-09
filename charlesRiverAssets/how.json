@@ -1,0 +1,114 @@
+{
+  "subPlans": [
+    {
+      "goal": {
+        "description": "Align personal aspirations with professional trajectory by conducting a quarterly review of career goals and aligning them with personal values.",
+        "deadline": "2024-01-31"
+      },
+      "justification": "To ensure professional growth aligns with personal values, enhancing overall satisfaction and motivation.",
+      "actionItems": [
+        {
+          "what": "Conduct a self-assessment of current career goals.",
+          "when": "2023-11-01, 10:00 AM",
+          "duration": "2 hours"
+        },
+        {
+          "what": "Identify discrepancies between personal values and career trajectory.",
+          "when": "2023-11-02, 10:00 AM",
+          "duration": "2 hours"
+        },
+        {
+          "what": "Develop an action plan to address identified discrepancies.",
+          "when": "2023-11-03, 2:00 PM",
+          "duration": "3 hours"
+        }
+      ]
+    },
+    {
+      "goal": {
+        "description": "Challenge assumptions and receive actionable insights by attending bi-weekly mastermind sessions.",
+        "deadline": "2023-12-31"
+      },
+      "justification": "To gain new perspectives and feedback that can drive personal and professional growth.",
+      "actionItems": [
+        {
+          "what": "Join a local or online mastermind group.",
+          "when": "2023-11-05, 5:00 PM",
+          "duration": "1 hour"
+        },
+        {
+          "what": "Attend bi-weekly mastermind sessions.",
+          "when": "Every other Wednesday, 7:00 PM",
+          "duration": "1.5 hours"
+        }
+      ]
+    },
+    {
+      "goal": {
+        "description": "Cultivate a balanced life and nurture meaningful relationships by dedicating weekly time for family activities and personal hobbies.",
+        "deadline": "2024-04-30"
+      },
+      "justification": "To enhance personal well-being and strengthen family bonds, leading to a more fulfilling life.",
+      "actionItems": [
+        {
+          "what": "Plan a weekly family activity.",
+          "when": "Every Saturday, 3:00 PM",
+          "duration": "3 hours"
+        },
+        {
+          "what": "Schedule time for personal hobbies like hiking or woodworking.",
+          "when": "Every Sunday, 10:00 AM",
+          "duration": "2 hours"
+        }
+      ]
+    },
+    {
+      "goal": {
+        "description": "Achieve a 20% increase in revenue by implementing new marketing strategies and optimizing current operations.",
+        "deadline": "2024-10-31"
+      },
+      "justification": "To ensure business growth and stability, providing more opportunities for expansion and mentorship.",
+      "actionItems": [
+        {
+          "what": "Conduct a market analysis to identify growth opportunities.",
+          "when": "2023-11-10, 9:00 AM",
+          "duration": "4 hours"
+        },
+        {
+          "what": "Develop and implement a new marketing strategy.",
+          "when": "2023-11-15, 10:00 AM",
+          "duration": "8 hours"
+        },
+        {
+          "what": "Review and optimize current operational processes.",
+          "when": "2023-12-01, 1:00 PM",
+          "duration": "6 hours"
+        }
+      ]
+    },
+    {
+      "goal": {
+        "description": "Complete a pivotal industry certification to enhance professional credibility and expertise.",
+        "deadline": "2024-10-31"
+      },
+      "justification": "To expand professional knowledge and credentials, improving career prospects and opportunities for mentorship.",
+      "actionItems": [
+        {
+          "what": "Research industry certifications relevant to current field.",
+          "when": "2023-11-20, 9:00 AM",
+          "duration": "3 hours"
+        },
+        {
+          "what": "Enroll in a chosen certification program.",
+          "when": "2023-12-05, 10:00 AM",
+          "duration": "2 hours"
+        },
+        {
+          "what": "Set a study schedule to prepare for certification exams.",
+          "when": "Every Tuesday and Thursday, 6:00 PM",
+          "duration": "2 hours"
+        }
+      ]
+    }
+  ]
+}

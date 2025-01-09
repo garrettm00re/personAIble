@@ -1,12 +1,12 @@
 {
-    "subPlan": [
+    "subPlans": [
       {
         "goal": {
           "description": "Secure a job in Software Engineering or Machine Learning",
           "deadline": "2025-03-31"
         },
         "justification": "Jimmy has a strong passion for continuous improvement, making a positive difference, and leveraging his skills in programming and problem-solving.",
-        "actionItem": [
+        "actionItems": [
           {
             "what": "Complete and refine resume and LinkedIn profile",
             "when": "2025-01-07",
@@ -35,7 +35,7 @@
           "deadline": "2025-07-01"
         },
         "justification": "Jimmy values independence and wants to establish a stable personal environment for growth and social development.",
-        "actionItem": [
+        "actionItems": [
           {
             "what": "Research affordable housing options",
             "when": "Weekends in February",
@@ -83,7 +83,7 @@
           "deadline": "2026-01-01"
         },
         "justification": "Jimmy values connections with others and wants to build meaningful relationships.",
-        "actionItem": [
+        "actionItems": [
           {
             "what": "Join local interest groups or clubs",
             "when": "January to March, Saturdays",

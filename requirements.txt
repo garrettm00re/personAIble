@@ -1,0 +1,10 @@
+flask
+langchain
+langchain-openai
+langchain-core
+langgraph
+langchain-community
+langchain-text-splitters
+numpy
+python-dotenv
+jq
