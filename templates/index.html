@@ -79,14 +79,10 @@
             qaContainer.scrollTop = qaContainer.scrollHeight;
         }
 
-        // Initialize back button
         backArrow.addEventListener('click', () => navigate('root'));
-
-        navigate('root'); // Default page
-        
+        navigate('root'); 
         function formatSubPlan(subPlan) {
         let html = '';
-        
         subPlan.forEach(plan => {
             html += `
                 <div class="plan-section">
@@ -219,7 +215,6 @@
         </div>`;
     }
 
-    // Add these new functions for handling edits and saves
     let currentData = {
         who: null,
         whereTo: null,
@@ -310,7 +305,6 @@
         const targetPage = document.getElementById(targetId);
         targetPage.classList.remove('hidden');
         backArrow.classList.toggle('hidden', targetId === 'root');
-        
         if (targetId !== 'root' && targetId !== 'settings') {
             try {
                 const response = await fetch(`/api/${targetId}`);

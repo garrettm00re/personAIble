@@ -1,26 +1,29 @@
 {
-    "Name": "Charles River",
-    "DOB": "1976",
-    "Gender": "Male",
-    "Core Values": [
-        "Integrity",
-        "Accountability",
-        "Resilience",
-        "Efficiency",
-        "Transparency",
-        "Candid Conversations"
-    ],
-    "Personality Traits": [
-        "Ambitious",
-        "Analytical",
-        "Dependable",
-        "Strategic Thinker",
-        "Clear Communicator",
-        "Composed Under Pressure"
-    ],
-    "Hobbies/Interests": [
-        "Hiking",
-        "Woodworking",
-        "Reading Historical and Philosophical Texts"
-    ]
+  "Name": "Charles River",
+  "DOB": "1976",
+  "Gender": "Male",
+  "Core Values": [
+    "Precision in execution",
+    "Data-backed decisions",
+    "Open, honest feedback",
+    "Continuous improvement",
+    "Transparency in communication",
+    "Integrity in decision-making",
+    "Resilience in overcoming challenges"
+  ],
+  "Personality Traits": [
+    "Goal-oriented",
+    "Systematic",
+    "Resourceful",
+    "Strategic foresight",
+    "Analytical thinking",
+    "Decisive"
+  ],
+  "Hobbies/Interests": [
+    "Backpacking and hiking",
+    "Crafting custom modern furniture",
+    "Analyzing Enlightenment philosophers",
+    "Woodworking",
+    "Mentoring"
+  ]
 }

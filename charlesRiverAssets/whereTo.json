@@ -1,84 +1,54 @@
 {
   "desires": [
     {
-      "description": "Align personal aspirations with professional trajectory",
-      "strength": "8",
-      "timeliness": "3 months"
-    },
-    {
-      "description": "Challenge assumptions and receive actionable insights",
-      "strength": "7",
-      "timeliness": "Immediate"
-    },
-    {
-      "description": "Hold accountable to measurable progress",
-      "strength": "8",
-      "timeliness": "Ongoing"
-    },
-    {
-      "description": "Cultivate a balanced life and nurture meaningful relationships",
-      "strength": "9",
+      "description": "Improve client engagement and streamline post-project support systems for Precision Solutions.",
+      "strength": 9,
       "timeliness": "6 months"
     },
     {
-      "description": "Expand business and mentor upcoming machine learning engineers",
-      "strength": "8",
+      "description": "Increase Precision Solutions' annual revenue to $2M by the end of 2025.",
+      "strength": 10,
+      "timeliness": "2 years"
+    },
+    {
+      "description": "Develop an AI-powered supply chain optimization tool by 2026.",
+      "strength": 8,
+      "timeliness": "3 years"
+    },
+    {
+      "description": "Complete Lean Six Sigma Black Belt certification by Q3 2025.",
+      "strength": 8,
+      "timeliness": "2 years"
+    },
+    {
+      "description": "Reduce client onboarding time by 75% within the next six months.",
+      "strength": 9,
+      "timeliness": "6 months"
+    },
+    {
+      "description": "Host first leadership workshop by mid-2025.",
+      "strength": 7,
+      "timeliness": "2 years"
+    },
+    {
+      "description": "Achieve a 20% increase in client retention within 1 year.",
+      "strength": 9,
       "timeliness": "1 year"
     },
     {
-      "description": "Achieve a 20% increase in revenue",
-      "strength": "9",
-      "timeliness": "1 year"
-    },
-    {
-      "description": "Complete a pivotal industry certification",
-      "strength": "7",
-      "timeliness": "1 year"
-    },
-    {
-      "description": "Host first leadership workshop",
-      "strength": "8",
-      "timeliness": "1 year"
-    },
-    {
-      "description": "Publish a book on leadership",
-      "strength": "7",
+      "description": "Publish a book on data-driven leadership.",
+      "strength": 7,
       "timeliness": "5 years"
     },
     {
-      "description": "Transition to semi-retirement and focus on philanthropy",
-      "strength": "6",
+      "description": "Create a legacy of professional excellence and community impact.",
+      "strength": 10,
       "timeliness": "10 years"
     },
     {
-      "description": "Delegate tasks more confidently",
-      "strength": "7",
-      "timeliness": "6 months"
-    },
-    {
-      "description": "Embrace creative risks",
-      "strength": "6",
-      "timeliness": "6 months"
-    },
-    {
-      "description": "Maintain a consistent balance between professional and personal life",
-      "strength": "9",
-      "timeliness": "3 months"
-    },
-    {
-      "description": "Strengthen relationship with family",
-      "strength": "8",
-      "timeliness": "3 months"
-    },
-    {
-      "description": "Strategies for scaling business sustainably",
-      "strength": "9",
-      "timeliness": "6 months"
-    },
-    {
-      "description": "Tools for time management",
-      "strength": "8",
-      "timeliness": "Immediate"
+      "description": "Strengthen personal relationships with family by ensuring they feel prioritized.",
+      "strength": 9,
+      "timeliness": "ongoing"
     }
   ]
 }
