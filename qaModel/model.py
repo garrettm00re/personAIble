@@ -39,8 +39,7 @@ class PersonAIble:
             self.prompt = lambda state: f"""You are {self.user}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
             Question: {state['question']}
             Context: {state['context']}
-            Chat History: {self.chat_history}
-            """
+            """ # Chat History: {self.chat_history}
             # Set up the graph
             self._setup_graph()
     
@@ -66,36 +65,31 @@ class PersonAIble:
         
         desiredInformation = state["desiredInformation"]
         docs = {}
-        for info in desiredInformation:
-            # Create a thread pool for parallel similarity searches
-            with ThreadPoolExecutor() as executor:
-                # Submit similarity search tasks for each info item
-                future_to_info = {
-                    executor.submit(
-                        self.vector_store.similarity_search_with_score, info, k=self.k
-                    ): info for info in desiredInformation
-                }
-                
-                # Process completed searches as they finish
-                for future in as_completed(future_to_info):
-                    print("a future finished")
-                    raw_results = future.result()
-                    relevant = getMostRelevant(raw_results)
-                    # Add relevant docs to shared dict
-                    for doc in relevant:
-                        docs[doc.id] = doc
-            relevant = getMostRelevant(self.vector_store.similarity_search_with_score(info, k = self.k))
-            for doc in relevant:
-                docs[doc.id] = doc
+        ### make sure to get documents directly relevant to the question
+        raw_results = self.vector_store.similarity_search_with_score(state["question"], k = self.k)
+        relevant = getMostRelevant(raw_results)
+        for doc in relevant:
+            docs[doc.id] = doc
+            
+        ### get documents relevant to the desired information
+        with ThreadPoolExecutor() as executor:
+            future_to_info = {
+                executor.submit(
+                    self.vector_store.similarity_search_with_score, info, k=self.k
+                ): info for info in desiredInformation
+            }
+            
+            # Process completed searches as they finish
+            for future in as_completed(future_to_info):
+                print("a future finished")
+                raw_results = future.result()
+                relevant = getMostRelevant(raw_results)
+                # Add relevant docs to shared dict
+                for doc in relevant:
+                    docs[doc.id] = doc
         return {"context": list(docs.values())}
 
     def generate(self, state: State):
-        docs_content = "\n\n".join(doc.page_content for doc in state["context"])
-        formatted_history = "\n".join([
-            f"Human: {exchange['question']}\nAssistant: {exchange['answer']}"
-            for exchange in self.chat_history
-        ])
-        
         prompt = self.prompt(state)
         print(prompt)
         response = self.llm.invoke(prompt)
