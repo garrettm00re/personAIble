@@ -2,91 +2,121 @@
   "subPlans": [
     {
       "goal": {
-        "description": "Improve client engagement and streamline post-project support systems for Precision Solutions.",
+        "description": "Improve client engagement and streamline post-project support systems for Precision Solutions by April 2024.",
         "deadline": "2024-04-30"
       },
-      "justification": "Enhancing client engagement aligns with Charles's goal-oriented and systematic approach, contributing to the company's success and his professional legacy.",
+      "justification": "To enhance customer satisfaction and strengthen long-term business relationships while reflecting Charles' value of continuous improvement.",
       "actionItems": [
         {
-          "what": "Conduct client feedback sessions to identify engagement gaps.",
-          "when": [
-            {"day": "Monday", "time": "10:00 AM"}
-          ],
-          "duration": "2 hours"
+          "what": "Conduct a comprehensive analysis of current client engagement practices and identify key areas for improvement.",
+          "when": "Every Monday, 9 AM - 11 AM",
+          "duration": "2 hours per session"
         },
         {
-          "what": "Develop a project support framework using collected data.",
-          "when": [
-            {"day": "Wednesday", "time": "2:00 PM"}
-          ],
-          "duration": "3 hours"
+          "what": "Develop a detailed plan for post-project support enhancements, including automation of follow-ups.",
+          "when": "Every Wednesday, 1 PM - 3 PM",
+          "duration": "2 hours per session"
         },
         {
-          "what": "Train support staff on the new framework.",
-          "when": [
-            {"day": "Friday", "time": "1:00 PM"}
-          ],
-          "duration": "2 hours"
+          "what": "Implement training sessions for the team on the new engagement and support systems.",
+          "when": "Every Friday, 10 AM - 12 PM",
+          "duration": "2 hours per session"
         }
       ]
     },
     {
       "goal": {
-        "description": "Reduce client onboarding time by 75% within the next six months.",
+        "description": "Reduce client onboarding time by 75% by April 2024.",
         "deadline": "2024-04-30"
       },
-      "justification": "This goal supports Charles's value of continuous improvement and efficiency, enhancing client satisfaction and operational effectiveness.",
+      "justification": "To increase operational efficiency and enhance customer experience, aligning with Charles' value of precision in execution.",
       "actionItems": [
         {
-          "what": "Analyze current onboarding processes for bottlenecks.",
-          "when": [
-            {"day": "Tuesday", "time": "9:00 AM"}
-          ],
-          "duration": "3 hours"
+          "what": "Map out the existing client onboarding process and identify bottlenecks.",
+          "when": "Every Tuesday, 10 AM - 12 PM",
+          "duration": "2 hours per session"
         },
         {
-          "what": "Implement automation tools to streamline onboarding.",
-          "when": [
-            {"day": "Thursday", "time": "11:00 AM"}
-          ],
-          "duration": "4 hours"
+          "what": "Design and test streamlined onboarding procedures with a focus on automation.",
+          "when": "Every Thursday, 2 PM - 4 PM",
+          "duration": "2 hours per session"
         },
         {
-          "what": "Test and refine the new onboarding process.",
-          "when": [
-            {"day": "Friday", "time": "3:00 PM"}
-          ],
-          "duration": "2 hours"
+          "what": "Roll out the new onboarding protocol and monitor its impact.",
+          "when": "Bi-weekly on Mondays, 3 PM - 4 PM",
+          "duration": "1 hour per session"
         }
       ]
     },
     {
       "goal": {
-        "description": "Achieve a 20% increase in client retention within 1 year.",
+        "description": "Achieve a 20% increase in client retention by October 2024.",
         "deadline": "2024-10-31"
       },
-      "justification": "Increasing client retention reflects Charles's strategic foresight and data-backed decision-making, ensuring long-term business growth.",
+      "justification": "To boost business growth and ensure sustainable success, leveraging Charles' analytical thinking and decision-making skills.",
       "actionItems": [
         {
-          "what": "Identify top factors influencing client retention.",
-          "when": [
-            {"day": "Monday", "time": "1:00 PM"}
-          ],
-          "duration": "2 hours"
+          "what": "Analyze client feedback and identify key retention factors.",
+          "when": "Every Wednesday, 10 AM - 11 AM",
+          "duration": "1 hour per session"
         },
         {
-          "what": "Develop a client loyalty program based on data analysis.",
-          "when": [
-            {"day": "Wednesday", "time": "11:00 AM"}
-          ],
-          "duration": "3 hours"
+          "what": "Develop and implement new client retention strategies, such as loyalty programs.",
+          "when": "Every Friday, 11 AM - 1 PM",
+          "duration": "2 hours per session"
         },
         {
-          "what": "Monitor retention metrics and adjust strategy accordingly.",
-          "when": [
-            {"day": "Friday", "time": "4:00 PM"}
-          ],
-          "duration": "1.5 hours"
+          "what": "Evaluate retention strategy effectiveness quarterly and adjust accordingly.",
+          "when": "Quarterly, first Monday of the month, 2 PM - 3 PM",
+          "duration": "1 hour per session"
+        }
+      ]
+    },
+    {
+      "goal": {
+        "description": "Complete Lean Six Sigma Black Belt certification by September 2025.",
+        "deadline": "2025-09-30"
+      },
+      "justification": "To enhance Charles' strategic foresight and operational expertise consistent with his goal-oriented personality.",
+      "actionItems": [
+        {
+          "what": "Enroll in a Lean Six Sigma Black Belt certification course.",
+          "when": "December 2023",
+          "duration": "One-time enrollment"
+        },
+        {
+          "what": "Dedicate time for study and practice exams.",
+          "when": "Twice a week, Thursday and Saturday, 8 PM - 10 PM",
+          "duration": "2 hours per session"
+        },
+        {
+          "what": "Participate in relevant projects to apply Lean Six Sigma principles.",
+          "when": "Monthly project engagement",
+          "duration": "Variable"
+        }
+      ]
+    },
+    {
+      "goal": {
+        "description": "Host the first leadership workshop by June 2025.",
+        "deadline": "2025-06-30"
+      },
+      "justification": "To share knowledge and mentor emerging leaders, aligning with Charles' interest in mentoring and community impact.",
+      "actionItems": [
+        {
+          "what": "Research and outline key topics for the workshop.",
+          "when": "Every Saturday, 9 AM - 11 AM",
+          "duration": "2 hours per session"
+        },
+        {
+          "what": "Identify and collaborate with industry experts for guest speaking engagements.",
+          "when": "Monthly, second Tuesday of the month, 1 PM - 2 PM",
+          "duration": "1 hour per session"
+        },
+        {
+          "what": "Organize and market the workshop to a targeted audience.",
+          "when": "Starting January 2025, bi-weekly on Thursdays, 3 PM - 4 PM",
+          "duration": "1 hour per session"
         }
       ]
     }
