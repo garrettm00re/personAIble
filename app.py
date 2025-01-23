@@ -12,10 +12,13 @@ supabase_url = os.environ.get("SUPABASE_URL")
 supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
 supabase = create_client(supabase_url, supabase_key)
 
-# Initialize the AI model
+# Initialize the AI model, 
+print("INIT MODEL AND LOAD DATA")
 ai_model = load_initial_data()
+print("MODEL LOADED")
 @app.route('/')
 def index():
+    print("RENDERING INDEX")
     return render_template('index.html')
 
 @app.route('/api/ask', methods=['POST'])

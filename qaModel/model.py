@@ -1,3 +1,18 @@
+from dotenv import load_dotenv
+load_dotenv(override=True)
+
+from phoenix.otel import register
+
+tracer_provider = register(
+  project_name="personAIble",
+  endpoint="https://app.phoenix.arize.com/v1/traces"
+)
+
+from openinference.instrumentation.langchain import LangChainInstrumentor
+LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+
+print("INSTRUMENTED")
+
 from langchain import hub
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -5,10 +20,8 @@ from langgraph.graph import START, StateGraph
 from langchain_core.documents import Document
 from typing_extensions import List, TypedDict
 import numpy as np
-from dotenv import load_dotenv
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
-load_dotenv(override=True)
 
 class State(TypedDict):
     desiredInformation: List[str]
@@ -38,9 +51,8 @@ class PersonAIble:
             self.user = json.load(open("./charlesRiverAssets/who.json"))["Name"]
             self.prompt = lambda state: f"""You are {self.user}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
             Question: {state['question']}
-            Context: {state['context']}
-            """ # Chat History: {self.chat_history}
-            # Set up the graph
+            Context: {[doc.page_content for doc in state['context']]}
+            """  # changed 1/23/2025 to use page_content instead of all data
             self._setup_graph()
     
     def _setup_graph(self):
@@ -94,7 +106,6 @@ class PersonAIble:
         print(prompt)
         response = self.llm.invoke(prompt)
         self.chat_history.append({"question": state["question"], "answer": response.content})
-        print("STATE PRINT", state)
         return {"answer": response.content}
     
     def load_data(self, documents):
