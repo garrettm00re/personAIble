@@ -1,0 +1,4 @@
+- clean up frontend code (modularize a bit)
+- implement follow-up questions -> 
+- implement a method for NER/information extraction and user model update -> https://chatgpt.com/share/67a1db20-3e0c-8003-a2c1-9bf1cd8d387e
+- unique users!

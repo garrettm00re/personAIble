@@ -9,5 +9,5 @@ numpy
 python-dotenv
 jq
 supabase
-phoenix-otel
+arize-phoenix-otel
 openinference-instrumentation-langchain

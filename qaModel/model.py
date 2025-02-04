@@ -44,7 +44,7 @@ class PersonAIble:
     def initialize(self):
         """Lazy loading of expensive components"""
         if self.graph is None:
-            # Only load these when first needed
+            # Only load these when first needed 
             self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
             self.vector_store = InMemoryVectorStore(self.embeddings)
             self.llm = ChatOpenAI(model="chatgpt-4o-latest")
