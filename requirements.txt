@@ -11,3 +11,4 @@ jq
 supabase
 arize-phoenix-otel
 openinference-instrumentation-langchain
+flask-socketio

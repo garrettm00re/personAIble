@@ -2,11 +2,7 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 from phoenix.otel import register
-
-tracer_provider = register(
-  project_name="personAIble",
-  endpoint="https://app.phoenix.arize.com/v1/traces"
-)
+tracer_provider = register(project_name="personAIble", endpoint="https://app.phoenix.arize.com/v1/traces")
 
 from openinference.instrumentation.langchain import LangChainInstrumentor
 LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
@@ -22,12 +18,21 @@ from typing_extensions import List, TypedDict
 import numpy as np
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
+from supabase import create_client
+import os
+
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
+supabase = create_client(supabase_url, supabase_key)
 
 class State(TypedDict):
-    desiredInformation: List[str]
+    QA: List[tuple[str, List[str]]] # list of tuples (question, answer(s))
+    desiredInformation: List[str] # list of the questions we want to retrieve information for (includes the intiial user question)
     question: str
     context: List[Document]
     answer: str
+
 
 class PersonAIble:
     def __init__(self, k = 0):
@@ -51,61 +56,94 @@ class PersonAIble:
             self.user = json.load(open("./charlesRiverAssets/who.json"))["Name"]
             self.prompt = lambda state: f"""You are {self.user}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
             Question: {state['question']}
-            Context: {[doc.page_content for doc in state['context']]}
-            """  # changed 1/23/2025 to use page_content instead of all data
+            Context: {[f"{question} : {answer}" for question, answer in state['context']]}
+            """  
             self._setup_graph()
     
     def _setup_graph(self):
         graph_builder = StateGraph(State)
-        graph_builder.add_sequence([self.research, self.retrieve, self.generate])
+        graph_builder.add_sequence([self.research, self.retrieve, self.followUp, self.generate])
         graph_builder.add_edge(START, "research")
         graph_builder.add_edge("research", "retrieve")
-        graph_builder.add_edge("retrieve", "generate")
+        graph_builder.add_edge("retrieve", "followUp")
+        graph_builder.add_edge("followUp", "generate")
         self.graph = graph_builder.compile()
     
     def research(self, state: State):
-        prompt = f"You are a helpful assistant preparing to answer the following question: {state['question']}. Generate a short (2 - 3 item) list of information about the user that would help you to answer their question accurately. Return the list as a newline-separated string."
+        prompt = f"You are a helpful assistant preparing to answer the following question: {state['question']}. Generate a short (2 - 3 item) list of questions about the user that would help you to answer their request accurately. Return the list as a newline-separated string."
         response = self.llm.invoke(prompt)
-        return {"desiredInformation": response.content.split("\n")}
+        questions = response.content.split("\n")
+        desiredInformation = [question for question in questions] + [state["question"]]
+        return {"desiredInformation": desiredInformation}
 
-    def retrieve(self, state: State, minRelevance = 0.2, numStdDev = 2):
-        def getMostRelevant(raw_results):
+    def retrieve(self, state: State, minRelevance = 0.4, numStdDev = 2):
+        def getMostRelevant(question):
+            raw_results = self.vector_store.similarity_search_with_score(question, k = self.k)
             scores = np.array([cosine_similarity for _, cosine_similarity in raw_results])
             mean = np.mean(scores)
             std = np.std(scores)
             return [raw_results[i][0] for i in np.where(scores >= mean + (std*numStdDev))[0] if raw_results[i][1] >= minRelevance]
         
         desiredInformation = state["desiredInformation"]
-        docs = {}
-        ### make sure to get documents directly relevant to the question
-        raw_results = self.vector_store.similarity_search_with_score(state["question"], k = self.k)
-        relevant = getMostRelevant(raw_results)
-        for doc in relevant:
-            docs[doc.id] = doc
-            
-        ### get documents relevant to the desired information
+        QA = []
         with ThreadPoolExecutor() as executor:
             future_to_info = {
-                executor.submit(
-                    self.vector_store.similarity_search_with_score, info, k=self.k
-                ): info for info in desiredInformation
+                    executor.submit(
+                        getMostRelevant, question
+                ): question for question in desiredInformation
             }
             
             # Process completed searches as they finish
             for future in as_completed(future_to_info):
-                print("a future finished")
-                raw_results = future.result()
-                relevant = getMostRelevant(raw_results)
-                # Add relevant docs to shared dict
-                for doc in relevant:
-                    docs[doc.id] = doc
-        return {"context": list(docs.values())}
+                question = future_to_info[future]
+                results = future.result()
+                context = []
+                for result in results:
+                    context.append(result.page_content)
+                QA.append((question, context))
+        return {"QA": QA}
+    
+    def followUp(self, state: State):
+        def consolidateIntoContext(question, answer):
+            prompt = f"""You are given this question: {question} and answer: {answer}. 
+            Return a concise summary of the question and answer. 
+            The subject of the summary is the person who answered the question."""
+            return self.llm.invoke(prompt).content
+        
+        print("FOLLOWUP")
+        allQA = state["QA"]
+        print("ALLQA: ", allQA)
+        for idx, QA in enumerate(allQA):
+            if QA[1] == [] and QA[0] != state["question"]:
+                # Get answer from askUser endpoint
+                response = requests.post(
+                    'http://localhost:5000/api/followup',
+                    json={'QA': QA}
+                )
+                if response.status_code == 200:
+                    answer = response.json()['answer']
+                    conciseAnswer = consolidateIntoContext(QA[0], answer)
+                    allQA[idx] = (QA[0], [conciseAnswer])
 
+                    # make document and add concise answer to vector store
+                    document = Document(page_content=conciseAnswer, metadata={"source": "followup"})
+                    self.vector_store.add_documents([document])
+
+                    # add concise answer to supabase
+                    supabase.table('QA').insert(
+                        {"questions": QA[0], 
+                         "answers": conciseAnswer}
+                        ).execute()
+    
+        return {"context": allQA}
+    
     def generate(self, state: State):
+        print('generating')
         prompt = self.prompt(state)
-        print(prompt)
+        #print('prompt: ', prompt)
         response = self.llm.invoke(prompt)
         self.chat_history.append({"question": state["question"], "answer": response.content})
+
         return {"answer": response.content}
     
     def load_data(self, documents):

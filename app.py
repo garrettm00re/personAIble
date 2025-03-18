@@ -4,18 +4,30 @@ sys.path.append(os.getcwd())
 from qaModel import *
 import json
 from supabase import create_client
+from datetime import datetime
+import time
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key-here'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize Supabase client
 supabase_url = os.environ.get("SUPABASE_URL")
 supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
 supabase = create_client(supabase_url, supabase_key)
 
-# Initialize the AI model, 
+# Initialize the AI model
 print("INIT MODEL AND LOAD DATA")
 ai_model = load_initial_data()
+# Pass the database client to the model
+ai_model.db_client = supabase
 print("MODEL LOADED")
+
+# for followup
+answer = None
+success = False
+
 @app.route('/')
 def index():
     print("RENDERING INDEX")
@@ -104,5 +116,54 @@ def handle_where_to():
             print(f"Error updating whereTo data: {str(e)}", flush=True)
             return jsonify({'error': str(e)}), 500
 
+@app.route('/api/followup', methods=['POST'])
+def handle_followup():
+    global answer, success
+    answer = None
+    success = False
+    
+    print('handle followup')
+    data = request.json
+    QA = data.get('QA')
+    if not QA:
+        return jsonify({'error': 'No QA pairs provided'}), 400
+
+    try:
+        question, answers = QA
+        question_id = str(time.time())
+        # Send question to frontend
+        socketio.emit('ask_followup', {
+            'question': question,
+            'question_id': question_id
+        })
+
+        print('waiting for answer')
+        # Simple wait loop with timeout
+        timeout = time.time() + 60 # 1 minute timeout
+        while answer is None:
+            if time.time() > timeout:
+                return jsonify({'error': 'Response timeout'}), 408
+            time.sleep(0.5)  # Small sleep to prevent CPU spinning
+        if success:
+            print('got answer', answer)
+            answers = [answer]
+            # update supabase
+            result = supabase.table('QA').update({"answers": answers}).eq('id', 1).execute()
+            print("RESULT: ", result)
+
+            return jsonify({'answer': answer})
+
+    except Exception as e:
+        print(f"Error in handle_followup: {str(e)}", flush=True)
+        return jsonify({'error': str(e)}), 500
+    
+@socketio.on('followup_response')
+def handle_followup_response(data):
+    print('handle followup response')
+    global answer, success
+    answer = data.get('answer')
+    if answer != None:
+        success = True
+
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    socketio.run(app, debug=True, port=5000)
