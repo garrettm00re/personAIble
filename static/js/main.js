@@ -1,4 +1,4 @@
-import { initializeChat, submitQuestion } from './chat.js';
+import { initializeChat, submit } from './chat.js';
 import { initializeNavigation, navigate } from './navigation.js';
 import { saveChanges } from './dataManager.js';
 
@@ -9,6 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Make necessary functions available to global scope for onclick handlers
-window.submitQuestion = submitQuestion;
+window.submit = submit;
 window.navigate = navigate;
 window.saveChanges = saveChanges;

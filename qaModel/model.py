@@ -70,6 +70,7 @@ class PersonAIble:
         self.graph = graph_builder.compile()
     
     def research(self, state: State):
+        ## 2-3 questions could be too much or too little. How to decide depending on the request?
         prompt = f"You are a helpful assistant preparing to answer the following question: {state['question']}. Generate a short (2 - 3 item) list of questions about the user that would help you to answer their request accurately. Return the list as a newline-separated string."
         response = self.llm.invoke(prompt)
         questions = response.content.split("\n")

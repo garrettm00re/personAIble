@@ -146,7 +146,7 @@ def handle_followup():
             time.sleep(0.5)  # Small sleep to prevent CPU spinning
         if success:
             print('got answer', answer)
-            answers = [answer]
+            answers = [answer] # QA table expects a list of answers
             # update supabase
             result = supabase.table('QA').update({"answers": answers}).eq('id', 1).execute()
             print("RESULT: ", result)

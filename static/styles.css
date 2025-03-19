@@ -189,3 +189,12 @@ html {
 .save-button:hover {
     background-color: #45a049;
 }
+
+.follow-up {
+    margin-left: 20px;
+}
+
+.follow-up-indicator {
+    margin-right: 8px;
+    color: #666;
+}
