@@ -12,3 +12,4 @@ supabase
 arize-phoenix-otel
 openinference-instrumentation-langchain
 flask-socketio
+flask_login

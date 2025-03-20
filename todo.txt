@@ -1,8 +1,10 @@
 - clean up frontend code (modularize a bit) --> DONE
 - implement follow-up questions --> ALMOST DONE
 - implement a method for NER/information extraction and user model update -> https://chatgpt.com/share/67a1db20-3e0c-8003-a2c1-9bf1cd8d387e
-- unique users + onboarding flow!
 
+
+- unique users + onboarding flow! IN PROGRESS
+- enable model to pull information from the internet/db
 - improve onboarding:
     - ingest linkedin profile?
     - collect social profiles and scrape those too

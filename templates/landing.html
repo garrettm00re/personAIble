@@ -1,0 +1,38 @@
+<!-- Convert visitors into users -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>personAIble - Your AI Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+</head>
+<body>
+    <nav class="landing-nav">
+        <div class="logo">personAIble</div>
+        <div class="auth-buttons">
+            <a href="{{ url_for('auth.google_login') }}" class="google-btn">
+                <img src="{{ url_for('static', filename='img/google-logo.png') }}" alt="Google Logo">
+                Sign in with Google
+            </a>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Your Personal AI Assistant</h1>
+            <div class="demo-animation">
+                <!-- Dynamic visualization goes here -->
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="features">
+            <!-- Key features with icons/animations -->
+        </section>
+    </main>
+
+    <script type="module" src="{{ url_for('static', filename='js/landing.js') }}"></script>
+</body>
+</html>

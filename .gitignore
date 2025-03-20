@@ -1,4 +1,4 @@
 .env
-
+genSecret.ipynb
 .vercel
 deprecated/*

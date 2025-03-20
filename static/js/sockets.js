@@ -31,7 +31,7 @@ socket.on('ask_followup', (data) => {
     
     window.pendingFollowUpCallback = (answer) => { // this is a callback function that will be called (in chat.js/submit) when the user provides an answer
         console.log('User provided answer:', answer);
-        socket.emit('followup_response', {
+        socket.emit('followup_response', { // send the answer to the backend
             'answer': answer,
         });
     };
