@@ -21,11 +21,9 @@ def create_app():
     
     # Register blueprints
     from .auth import auth_bp
-    from .chat import chat_bp
     from .user import user_bp
     
     app.register_blueprint(auth_bp)
-    app.register_blueprint(chat_bp)
     app.register_blueprint(user_bp)
     
     return app

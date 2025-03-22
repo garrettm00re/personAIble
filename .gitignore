@@ -2,3 +2,4 @@
 genSecret.ipynb
 .vercel
 deprecated/*
+__pycache__/*

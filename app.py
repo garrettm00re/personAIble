@@ -22,12 +22,34 @@ class UserRepository:
         return data.data[0] if data.data else None
     
     def save(self, user):
-        self.db_client.table('profiles').insert(user).execute()
+        # profiles table:
+        # id: google_id (overrides default primary key)
+        # email: email
+        # name: name
+        # profile_pic: profile_pic
+        # onboarded: onboarded
+        # information: information ->
+
+
+        self.db_client.table('profiles').insert({
+            'google_id': user.google_id,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'profile_pic': user.profile_pic,
+            'onboarded': user.onboarded,
+            'information': "" # information should be put in a different table (though assoc w  profile, it is more relevant to onboarding)
+        }).execute()
 
 class User(UserMixin):
     # Simple user model - you'll want to connect this to a database
-    def __init__(self, id, onboarded=False):
-        self.id = id
+    def __init__(self, google_id, email, first_name, last_name, profile_pic, onboarded=False):
+        self.id = google_id
+        self.google_id = google_id
+        self.email = email
+        self.first_name = first_name
+        self.last_name = last_name
+        self.profile_pic = profile_pic
         self.onboarded = onboarded
 
     
@@ -36,10 +58,14 @@ def get_by_google_id(google_id):
     if not data.data:
         return None
     user_data = data.data[0]
+    print(type(user_data))
     return User(
-        id=user_data['id'],
+        google_id=user_data['google_id'],
         email=user_data['email'],
-        name=user_data['name']
+        first_name=user_data['first_name'],
+        last_name=user_data['last_name'],
+        profile_pic=user_data['profile_pic'],
+        onboarded=user_data['onboarded']
     )
  
 def initSupabase():# Initialize Supabase client
@@ -250,7 +276,10 @@ def google_login():
     """Initiate Google OAuth flow"""
     # Ensure user isn't already logged in
     if current_user.is_authenticated:
-        return redirect(url_for('chat'))
+        if not current_user.onboarded:
+            return redirect(url_for('onboarding'))
+        else:
+            return redirect(url_for('main')) # 
     print('google login')
     # Generate the Google authorization URL
     redirect_uri = url_for('auth.google_callback', _external=True)
@@ -268,18 +297,20 @@ def google_callback():
 
 
         # Extract user data
-        google_id = user_info.get('id')
+        google_id = user_info.get('sub') # user may have multiple google accounts, but only one google_id
         email = user_info.get('email')
-        name = user_info.get('name')
+        first_name = user_info.get('given_name')
+        last_name = user_info.get('family_name')
         picture = user_info.get('picture')
 
+        print(user_info)
         # Find or create user in your database
         user = user_repository.get_by_google_id(google_id) # returns a User object if exists
 
         if not user: # create account
-            user = User(google_id=google_id, email=email, name=name, profile_pic=picture)
+            user = User(google_id=google_id, email=email, first_name=first_name, last_name=last_name, profile_pic=picture)
             user_repository.save(user)
-
+        print('testing123')
         # Log the user in
         login_user(user)
 
@@ -292,14 +323,14 @@ def google_callback():
         current_app.logger.error(f"Google callback error: {e}")
         return redirect(url_for('auth.google_login', error="Google login failed"))
 
-@app.route('/auth/signup', methods=['POST'])
-def signup():   
-    """Handle new user registration"""
-    data = request.get_json()
-    # Create new user (implement your registration logic)
-    user = User(id=data['email'], has_completed_onboarding=False)
-    login_user(user)
-    return jsonify({'success': True})
+# @app.route('/auth/signup', methods=['POST'])
+# def signup():   
+#     """Handle new user registration"""
+#     data = request.get_json()
+#     # Create new user (implement your registration logic)
+#     user = User(id=data['email'], has_completed_onboarding=False)
+#     login_user(user)
+#     return jsonify({'success': True})
 
 @app.route('/auth/logout')
 @login_required
@@ -312,7 +343,7 @@ def logout():
 def load_user(user_id):
     # User loader for Flask-Login
     # Implement user loading from your database
-    return User(user_id)
+    return get_by_google_id(user_id)
 
 app.register_blueprint(auth_bp)
 
