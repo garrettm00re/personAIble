@@ -1,5 +1,6 @@
 .env
 genSecret.ipynb
 .vercel
-deprecated/*
+.deprecated/*
 __pycache__/*
+.debug/*

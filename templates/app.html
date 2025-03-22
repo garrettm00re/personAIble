@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>personAIble</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
@@ -28,7 +28,9 @@
     <div id="who" class="content hidden">Who? Page Content</div>
     <div id="whereTo" class="content hidden">Where To? Page Content</div>
     <div id="how" class="content hidden">How? Page Content</div>
+
     <!-- <div id="settings" class="content hidden">Settings Page Content</div> -->
+    <script type="module" src="{{ url_for('static', filename='js/keybindings.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/formatters.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/dataManager.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/chat.js') }}"></script>

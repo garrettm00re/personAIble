@@ -1,0 +1,6 @@
+Hi! I'm personAIble, I'm here to help. I have a few questions to ask you to get to know you better. What's your full name?
+Nice to meet you, {name}! What brings you here?
+What are you passionate about?
+What values are most important to you?
+What are your biggest goals for the future?
+How can I help you achieve them?

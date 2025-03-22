@@ -12,10 +12,16 @@ from flask import current_app  # Import from flask
 
 load_dotenv()
 
-class UserRepository:
+class Database:
     # currently this is just a wrapper around the supabase client specifically for the user table
-    def __init__(self, db_client):
-        self.db_client = db_client
+    def __init__(self):
+        self.db_client = self.initSupabase()
+    
+    def initSupabase(self):# Initialize Supabase client
+        supabase_url = os.environ.get("SUPABASE_URL")
+        supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
+        db_client = create_client(supabase_url, supabase_key)
+        return db_client
 
     def get_by_google_id(self, google_id):
         data = self.db_client.table('profiles').select('*').eq('google_id', google_id).execute()
@@ -23,13 +29,13 @@ class UserRepository:
     
     def save(self, user):
         # profiles table:
-        # id: google_id (overrides default primary key)
+        # id: priamry key, should eventually just be the google_id ### google_id (overrides default primary key)
+        # google_id: google_id
         # email: email
         # name: name
         # profile_pic: profile_pic
         # onboarded: onboarded
         # information: information ->
-
 
         self.db_client.table('profiles').insert({
             'google_id': user.google_id,
@@ -40,6 +46,27 @@ class UserRepository:
             'onboarded': user.onboarded,
             'information': "" # information should be put in a different table (though assoc w  profile, it is more relevant to onboarding)
         }).execute()
+    
+    def addOnboardingQA(self, question, answer):
+        field_name = question.lower().replace(" ", "_")
+        self.db_client.table('onboarding').insert({
+            field_name: answer
+        }).execute()
+
+    def get_by_google_id(self, google_id):
+        data = self.db_client.table('profiles').select('*').eq('google_id', google_id).execute()
+        if not data.data:
+            return None
+        user_data = data.data[0]
+        print(type(user_data))
+        return User(
+            google_id=user_data['google_id'],
+            email=user_data['email'],
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'],
+            profile_pic=user_data['profile_pic'],
+            onboarded=user_data['onboarded']
+        )
 
 class User(UserMixin):
     # Simple user model - you'll want to connect this to a database
@@ -52,27 +79,9 @@ class User(UserMixin):
         self.profile_pic = profile_pic
         self.onboarded = onboarded
 
-    
-def get_by_google_id(google_id):
-    data = supabase.table('profiles').select('*').eq('google_id', google_id).execute()
-    if not data.data:
-        return None
-    user_data = data.data[0]
-    print(type(user_data))
-    return User(
-        google_id=user_data['google_id'],
-        email=user_data['email'],
-        first_name=user_data['first_name'],
-        last_name=user_data['last_name'],
-        profile_pic=user_data['profile_pic'],
-        onboarded=user_data['onboarded']
-    )
- 
-def initSupabase():# Initialize Supabase client
-    supabase_url = os.environ.get("SUPABASE_URL")
-    supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
-    supabase = create_client(supabase_url, supabase_key)
-    return supabase
+    def finished_onboarding(self):
+        self.onboarded = True
+        db.db_client.table('profiles').update({'onboarded': True}).eq('google_id', self.google_id).execute()
 
 from flask import Blueprint
 
@@ -85,10 +94,10 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'landing'  # Redirect unauthorized users here
 
-supabase = initSupabase()
-user_repository = UserRepository(supabase)
+#supabase = initSupabase()
+db = Database()
 ai_model = load_initial_data()
-ai_model.db_client = supabase
+ai_model.db_client = db.db_client
 
 # for followup
 answer = None
@@ -107,6 +116,7 @@ def landing():
 @app.route('/app')
 @login_required
 def main():
+    print("MAIN CALLED ")
     if not current_user.onboarded:
         return redirect(url_for('onboarding'))
     return render_template('app.html')  # your current index.html
@@ -118,9 +128,31 @@ def onboarding():
         return redirect(url_for('main'))
     return render_template('onboarding.html')
 
+@app.route('/onboarding/submit', methods=['POST'])
+def submit_onboarding():
+    print("SUBMIT ONBOARDING CALLED")
+    current_user.finished_onboarding()
+    
+
+    # can have other checks here that ensure all onboarding questions have been answered 
+    return jsonify({'status': 'success'})
+
+@app.route('/onboarding/store', methods=['POST'])
+def store_onboarding_answer():
+    data = request.json
+    try:
+        db.addOnboardingQA(
+            question=data['question'],
+            answer=data['answer']
+        )
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/ask', methods=['POST'])
 @login_required
 def ask():
+    print("ASK CALLED")
     try:
         data = request.json
         question = data.get('question')
@@ -143,7 +175,7 @@ def ask():
 def handle_how():
     if request.method == 'GET':
         try:
-            response = supabase.table('plans').select('subplans').eq('id', 1).execute()
+            response = db.table('plans').select('subplans').eq('id', 1).execute()
             data = response.data[0]['subplans'] if response.data else {}
             return data
         except Exception as e:
@@ -153,7 +185,7 @@ def handle_how():
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            result = supabase.table('plans').update({"subplans": new_data}).eq('id', 1).execute()
+            result = db.table('plans').update({"subplans": new_data}).eq('id', 1).execute()
             print("RESULT: ", result)
             return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
@@ -165,7 +197,7 @@ def handle_how():
 def handle_who():
     if request.method == 'GET':
         try:
-            response = supabase.table('profiles').select('information').eq('id', 1).execute()
+            response = db.table('profiles').select('information').eq('id', 1).execute()
             data = response.data[0]['information'] if response.data else {}
             return data
         except Exception as e:
@@ -176,7 +208,7 @@ def handle_who():
         try:
             new_data = request.json
             # Update data in Supabase
-            result = supabase.table('profiles').update({"information": new_data}).eq('id', 1).execute()
+            result = db.table('profiles').update({"information": new_data}).eq('id', 1).execute()
             print("RESULT: ", result)
             return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
@@ -188,7 +220,7 @@ def handle_who():
 def handle_where_to():
     if request.method == 'GET':
         try:
-            response = supabase.table('goals').select('desires').eq('id', 1).execute()
+            response = db.table('goals').select('desires').eq('id', 1).execute()
             data = response.data[0]['desires'] if response.data else {}
             return data
         except Exception as e:
@@ -198,7 +230,7 @@ def handle_where_to():
     elif request.method == 'PUT':
         try:
             new_data = request.json
-            result = supabase.table('goals').update({"desires": new_data}).eq('id', 1).execute()
+            result = db.table('goals').update({"desires": new_data}).eq('id', 1).execute()
             print("RESULT: ", result)
             return jsonify({'message': 'Data updated successfully'})
         except Exception as e:
@@ -238,7 +270,7 @@ def handle_followup():
             print('got answer', answer)
             answers = [answer] # QA table expects a list of answers
             # update supabase
-            result = supabase.table('QA').update({"answers": answers}).eq('id', 1).execute()
+            result = db.table('QA').update({"answers": answers}).eq('id', 1).execute()
             print("RESULT: ", result)
 
             return jsonify({'answer': answer})
@@ -305,11 +337,10 @@ def google_callback():
 
         print(user_info)
         # Find or create user in your database
-        user = user_repository.get_by_google_id(google_id) # returns a User object if exists
+        user = db.get_by_google_id(google_id) # returns a User object if exists
 
         if not user: # create account
-            user = User(google_id=google_id, email=email, first_name=first_name, last_name=last_name, profile_pic=picture)
-            user_repository.save(user)
+            db.save(User(google_id=google_id, email=email, first_name=first_name, last_name=last_name, profile_pic=picture))
         print('testing123')
         # Log the user in
         login_user(user)
@@ -340,10 +371,10 @@ def logout():
     return redirect(url_for('landing'))
 
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_id : str):
     # User loader for Flask-Login
     # Implement user loading from your database
-    return get_by_google_id(user_id)
+    return db.get_by_google_id(user_id)
 
 app.register_blueprint(auth_bp)
 

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>personAIble - Onboarding</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+    {% include 'components/top_bar.html' %}
+    
+    <div id="root" class="content">
+        {% include 'components/qa_interface.html' %}
+    </div>
+    <script type="module" src="{{ url_for('static', filename='js/keybindings.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/onboarding.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/formatters.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/dataManager.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/chat.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/navigation.js') }}"></script>
+    <!-- <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script> -->
+    <!-- <script type="module" src="{{ url_for('static', filename='js/sockets.js') }}"></script> -->
+</body>
+</html> 
