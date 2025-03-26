@@ -85,9 +85,12 @@ export async function initializeOnboarding() {
 }
 
 async function storeAnswer(questionIndex, userAnswer) {
+    console.log("STORE ANSWER CALLED")
+    console.log(onboardingQuestions[questionIndex])
+    console.log(userAnswer)
     try {
         // This POST request happens in the background
-        const response = await fetch('/api/onboarding/store', {
+        const response = await fetch('/onboarding/store', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

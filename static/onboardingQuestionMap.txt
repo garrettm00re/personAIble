@@ -1,0 +1,6 @@
+Hi! I'm personAIble, I'm here to help. I have a few questions to ask you to get to know you better. What's your full name? : what_is_your_name
+Nice to meet you, {name}! What brings you here? : what_brings_you_here
+What are you passionate about? : what_are_you_passionate_about
+What values are most important to you? : what_values_are_most_important_to_you
+What are your biggest goals for the future? : what_are_your_biggest_goals_for_the_future
+How can I help you achieve them? : how_can_i_help_you_achieve_them

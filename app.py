@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, jsonify, request
-from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user, user_logged_in, user_logged_out
 from flask_socketio import SocketIO, emit
 import os, sys
 sys.path.append(os.getcwd())
@@ -9,79 +9,10 @@ import time
 from flask_socketio import SocketIO
 from dotenv import load_dotenv
 from flask import current_app  # Import from flask
+from database import Database
+from user import User
 
 load_dotenv()
-
-class Database:
-    # currently this is just a wrapper around the supabase client specifically for the user table
-    def __init__(self):
-        self.db_client = self.initSupabase()
-    
-    def initSupabase(self):# Initialize Supabase client
-        supabase_url = os.environ.get("SUPABASE_URL")
-        supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
-        db_client = create_client(supabase_url, supabase_key)
-        return db_client
-
-    def get_by_google_id(self, google_id):
-        data = self.db_client.table('profiles').select('*').eq('google_id', google_id).execute()
-        return data.data[0] if data.data else None
-    
-    def save(self, user):
-        # profiles table:
-        # id: priamry key, should eventually just be the google_id ### google_id (overrides default primary key)
-        # google_id: google_id
-        # email: email
-        # name: name
-        # profile_pic: profile_pic
-        # onboarded: onboarded
-        # information: information ->
-
-        self.db_client.table('profiles').insert({
-            'google_id': user.google_id,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'profile_pic': user.profile_pic,
-            'onboarded': user.onboarded,
-            'information': "" # information should be put in a different table (though assoc w  profile, it is more relevant to onboarding)
-        }).execute()
-    
-    def addOnboardingQA(self, question, answer):
-        field_name = question.lower().replace(" ", "_")
-        self.db_client.table('onboarding').insert({
-            field_name: answer
-        }).execute()
-
-    def get_by_google_id(self, google_id):
-        data = self.db_client.table('profiles').select('*').eq('google_id', google_id).execute()
-        if not data.data:
-            return None
-        user_data = data.data[0]
-        print(type(user_data))
-        return User(
-            google_id=user_data['google_id'],
-            email=user_data['email'],
-            first_name=user_data['first_name'],
-            last_name=user_data['last_name'],
-            profile_pic=user_data['profile_pic'],
-            onboarded=user_data['onboarded']
-        )
-
-class User(UserMixin):
-    # Simple user model - you'll want to connect this to a database
-    def __init__(self, google_id, email, first_name, last_name, profile_pic, onboarded=False):
-        self.id = google_id
-        self.google_id = google_id
-        self.email = email
-        self.first_name = first_name
-        self.last_name = last_name
-        self.profile_pic = profile_pic
-        self.onboarded = onboarded
-
-    def finished_onboarding(self):
-        self.onboarded = True
-        db.db_client.table('profiles').update({'onboarded': True}).eq('google_id', self.google_id).execute()
 
 from flask import Blueprint
 
@@ -94,7 +25,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'landing'  # Redirect unauthorized users here
 
-#supabase = initSupabase()
 db = Database()
 ai_model = load_initial_data()
 ai_model.db_client = db.db_client
@@ -102,6 +32,19 @@ ai_model.db_client = db.db_client
 # for followup
 answer = None
 success = False
+
+vector_stores = {} # google_id : vector_store
+
+# for onboarding
+def get_onboarding_qa_map():
+    onboarding_qa_map = {}
+    with open('static/onboardingQuestionMap.txt', 'r') as file:
+        for line in file:
+            line = line.strip()
+            line = line.split(" : ")
+            onboarding_qa_map[line[0]] = line[1]
+    return onboarding_qa_map
+questionToColumnMap = get_onboarding_qa_map()
 
 #### VIEWS ####
 @app.route('/')
@@ -131,22 +74,24 @@ def onboarding():
 @app.route('/onboarding/submit', methods=['POST'])
 def submit_onboarding():
     print("SUBMIT ONBOARDING CALLED")
-    current_user.finished_onboarding()
-    
-
+    db.finished_onboarding(current_user)
     # can have other checks here that ensure all onboarding questions have been answered 
     return jsonify({'status': 'success'})
 
 @app.route('/onboarding/store', methods=['POST'])
 def store_onboarding_answer():
+    print("STORE ONBOARDING ANSWER CALLED")
     data = request.json
+    column_name = questionToColumnMap[data['question'].strip()]
     try:
         db.addOnboardingQA(
-            question=data['question'],
-            answer=data['answer']
+            column_name=column_name,
+            answer=data['answer'],
+            google_id=current_user.google_id
         )
         return jsonify({'status': 'success'})
     except Exception as e:
+        print("EXCEPTION: ", e)
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/ask', methods=['POST'])
@@ -156,12 +101,13 @@ def ask():
     try:
         data = request.json
         question = data.get('question')
+        print("QUESTION: ", question)
         
         if not question:
             return jsonify({'error': 'No question provided'}), 400
         
         # Get answer from the model
-        answer = ai_model.answer_question(question)
+        answer = ai_model.answer_question(question, current_user.google_id, current_user.first_name)
         
         return jsonify({
             'answer': answer
@@ -238,15 +184,32 @@ def handle_where_to():
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/followup', methods=['POST'])
-@login_required
 def handle_followup():
-    global answer, success
+    def consolidateIntoContext(question, answer, user_first_name, llm):
+        prompt = f"""You are given this question: {question} and answer: {answer}. 
+        Return a concise summary of the question and answer. 
+        The system asked {user_first_name} the question, and {user_first_name} answer the question."""
+        return llm.invoke(prompt).content
+    
+    def is_authorized():
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return False
+        token = auth_header.split(' ')[1]
+        return token == os.environ.get('FOLLOW_UP')
+    
+    
+    global answer, success # bad, need something that works for multiple users
     answer = None
     success = False
     
     print('handle followup')
     data = request.json
     QA = data.get('QA')
+    google_id = data.get('google_id')
+    first_name = data.get('first_name')
+    if not is_authorized():
+        return jsonify({'error': 'Invalid authorization token'}), 401
     if not QA:
         return jsonify({'error': 'No QA pairs provided'}), 400
 
@@ -267,13 +230,10 @@ def handle_followup():
                 return jsonify({'error': 'Response timeout'}), 408
             time.sleep(0.5)  # Small sleep to prevent CPU spinning
         if success:
-            print('got answer', answer)
-            answers = [answer] # QA table expects a list of answers
-            # update supabase
-            result = db.table('QA').update({"answers": answers}).eq('id', 1).execute()
-            print("RESULT: ", result)
-
-            return jsonify({'answer': answer})
+            print('GOT FOLLOWUP ANSWER')
+            summary = consolidateIntoContext(question, answer, first_name, ai_model.llm)
+            summary = db.add_followup_QA(google_id, question, answer, summary) 
+            return jsonify({'answer': answer, 'summary': summary})
 
     except Exception as e:
         print(f"Error in handle_followup: {str(e)}", flush=True)
@@ -354,21 +314,34 @@ def google_callback():
         current_app.logger.error(f"Google callback error: {e}")
         return redirect(url_for('auth.google_login', error="Google login failed"))
 
-# @app.route('/auth/signup', methods=['POST'])
-# def signup():   
-#     """Handle new user registration"""
-#     data = request.get_json()
-#     # Create new user (implement your registration logic)
-#     user = User(id=data['email'], has_completed_onboarding=False)
-#     login_user(user)
-#     return jsonify({'success': True})
-
 @app.route('/auth/logout')
 @login_required
 def logout():
     """Handle user logout"""
     logout_user()
     return redirect(url_for('landing'))
+
+################ In order for the model to run concurrently and for multiple users, need to maintain vector stores for each user (without inefficiency).
+# these methods enable the efficient creation and deletion of vector stores
+
+# Flask-Login signals
+@user_logged_in.connect_via(app)
+def on_user_logged_in(sender, user):
+    if user.onboarded:
+        ai_model.initUser(user.google_id) ## TODO - implement this
+# Flask-Login signals
+@user_logged_out.connect_via(app)
+def on_user_logged_out(sender, user):
+    if user.onboarded:
+        ai_model.deleteUser(user.google_id) ## TODO - implement this
+
+# Socket.IO disconnect
+@login_required
+@socketio.on('disconnect')
+def handle_disconnect():
+    if current_user.onboarded:
+        ai_model.deleteUser(current_user.google_id) ## TODO - implement this
+#####################
 
 @login_manager.user_loader
 def load_user(user_id : str):

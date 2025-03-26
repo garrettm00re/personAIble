@@ -4,7 +4,11 @@
 
 
 - unique users + onboarding flow! IN PROGRESS
+- modify research step to:
+    - include a dry generation step (answers question without research) and ask model to generate questions
+    that would improve the response
+    - include a step that evaluates the utility of the questions generated, and removes 
 - enable model to pull information from the internet/db
 - improve onboarding:
     - ingest linkedin profile?
-    - collect social profiles and scrape those too
+    - collect social profiles and scrape those too?

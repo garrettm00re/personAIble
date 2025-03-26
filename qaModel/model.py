@@ -32,35 +32,37 @@ class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
-
-
+    google_id: str
+    first_name: str
+    
 class PersonAIble:
     def __init__(self, k = 0):
         # Initialize once, reuse for all questions
         self.embeddings = None
-        self.vector_store = None
+        self.vector_stores = {} # handle multiple users this way (google_id : vector_store). Not a good approach but functional for low # users.
         self.llm = None
-        self.graph = None
-        self.prompt = None
-        self.k = k
-        self.user = None
-        self.chat_history = []
+        self.graph = self._setup_graph()
+        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+        #self.vector_store = InMemoryVectorStore(self.embeddings)
+        self.llm = ChatOpenAI(model="chatgpt-4o-latest")
+        #self.user = json.load(open("./charlesRiverAssets/who.json"))["Name"]
+        self.prompt = lambda state: f"""You are {state['first_name']}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+        Question: {state['question']}
+        Context: {[f"{question} : {answer}" for question, answer in state['context']]}
+        """  
+        #self.k = k
+        #self.user = None
+        #self.chat_history = []
         
-    def initialize(self):
-        """Lazy loading of expensive components"""
-        if self.graph is None:
-            # Only load these when first needed 
-            self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-            self.vector_store = InMemoryVectorStore(self.embeddings)
-            self.llm = ChatOpenAI(model="chatgpt-4o-latest")
-            self.user = json.load(open("./charlesRiverAssets/who.json"))["Name"]
-            self.prompt = lambda state: f"""You are {self.user}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
-            Question: {state['question']}
-            Context: {[f"{question} : {answer}" for question, answer in state['context']]}
-            """  
-            self._setup_graph()
+    # def initialize(self):
+    #     """Lazy loading of expensive components"""
+    #     if self.graph is None:
+    #         # Only load these when first needed 
+            
+            
     
     def _setup_graph(self):
+        # research, retrieve, followup, generate
         graph_builder = StateGraph(State)
         graph_builder.add_sequence([self.research, self.retrieve, self.followUp, self.generate])
         graph_builder.add_edge(START, "research")
@@ -79,14 +81,16 @@ class PersonAIble:
 
     def retrieve(self, state: State, minRelevance = 0.4, numStdDev = 2):
         def getMostRelevant(question):
-            raw_results = self.vector_store.similarity_search_with_score(question, k = self.k)
+            raw_results = vector_store.similarity_search_with_score(question, k = K)
             scores = np.array([cosine_similarity for _, cosine_similarity in raw_results])
             mean = np.mean(scores)
             std = np.std(scores)
             return [raw_results[i][0] for i in np.where(scores >= mean + (std*numStdDev))[0] if raw_results[i][1] >= minRelevance]
         
+        vector_store = self.vector_stores[state["google_id"]]
+        K = len(vector_store.documents)
         desiredInformation = state["desiredInformation"]
-        QA = []
+        qa_pairs = []
         with ThreadPoolExecutor() as executor:
             future_to_info = {
                     executor.submit(
@@ -101,16 +105,10 @@ class PersonAIble:
                 context = []
                 for result in results:
                     context.append(result.page_content)
-                QA.append((question, context))
-        return {"QA": QA}
+                qa_pairs.append((question, context))
+        return {"QA": qa_pairs}
     
     def followUp(self, state: State):
-        def consolidateIntoContext(question, answer):
-            prompt = f"""You are given this question: {question} and answer: {answer}. 
-            Return a concise summary of the question and answer. 
-            The subject of the summary is the person who answered the question."""
-            return self.llm.invoke(prompt).content
-        
         print("FOLLOWUP")
         allQA = state["QA"]
         print("ALLQA: ", allQA)
@@ -119,22 +117,16 @@ class PersonAIble:
                 # Get answer from askUser endpoint
                 response = requests.post(
                     'http://localhost:5000/api/followup',
-                    json={'QA': QA}
+                    json={'QA': QA, 'google_id': state['google_id'], 'first_name': state['first_name']},
+                    headers={'Authorization': f'Bearer {os.environ.get("FOLLOW_UP")}'}
                 )
                 if response.status_code == 200:
-                    answer = response.json()['answer']
-                    conciseAnswer = consolidateIntoContext(QA[0], answer)
-                    allQA[idx] = (QA[0], [conciseAnswer])
+                    summary = response.json()['summary']
+                    allQA[idx] = (QA[0], [summary])
 
                     # make document and add concise answer to vector store
-                    document = Document(page_content=conciseAnswer, metadata={"source": "followup"})
+                    document = Document(page_content=summary, metadata={"source": "followup"})
                     self.vector_store.add_documents([document])
-
-                    # add concise answer to supabase
-                    supabase.table('QA').insert(
-                        {"questions": QA[0], 
-                         "answers": conciseAnswer}
-                        ).execute()
     
         return {"context": allQA}
     
@@ -152,11 +144,21 @@ class PersonAIble:
         self.initialize()  # Ensure components are ready
         self.vector_store.add_documents(documents=documents)
     
-    def answer_question(self, question: str) -> str:
+    def answer_question(self, question: str, google_id: str, first_name: str) -> str:
         """Main interface for getting answers"""
-        self.initialize()  # Lazy loading
+        if google_id not in self.vector_stores:
+            return "ERROR: No data found for this user"
         
         result = self.graph.invoke({
-            "question": question
+            "question": question,
+            "google_id": google_id,
+            "first_name": first_name,
         })
         return result['answer']
+    
+    def initUser(self, google_id: str, documents: List[Document]):
+        self.vector_stores[google_id] = InMemoryVectorStore(self.embeddings)
+        self.vector_stores[google_id].add_documents(documents=documents)
+
+    def deleteUser(self, google_id: str):
+        del self.vector_stores[google_id]
