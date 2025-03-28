@@ -6,32 +6,33 @@ def get_all_followup_qa_summaries(google_id, db : Database) -> list[dict[str, st
     qa_summaries = db.db_client.table('QA').select('summary').eq('google_id', google_id).execute()
     return qa_summaries.data
 
-def followupLoader(google_id, db : Database):
+def getFollowupDocuments(google_id, db : Database):
     # get all rows from the QA table where google_id matches
     qa_summaries = get_all_followup_qa_summaries(google_id, db)
+    followup_docs = []
     for summary in qa_summaries:
-        yield Document(page_content=summary['summary'], metadata={"source": "followup"})
+        followup_docs.append(Document(page_content=summary['summary'], metadata={"source": "followup"}))
+    return followup_docs
 
 def get_all_onboarding_data(google_id, db : Database):
     onboarding_cols = db.db_client.table('onboarding').select('*').eq('google_id', google_id).execute()
     return onboarding_cols.data[0]
 
-def onboardingLoader(google_id, db : Database):
+def getOnboardingDocuments(google_id, db : Database, columnToQuestionMap : dict[str, str]):
     skipCols = set(['google_id', 'created_at', 'id'])
     onboarding_cols = get_all_onboarding_data(google_id, db)
-    for question, answer in onboarding_cols.items():
-        if question not in skipCols:
-                yield Document(page_content=f"{question} : {answer}", metadata={"source": "onboarding"})
+    onboarding_docs = []
+    for column, answer in onboarding_cols.items():
+        if column not in skipCols:
+            question = columnToQuestionMap[column]
+            onboarding_docs.append(Document(page_content=f"{question} : {answer}", metadata={"source": "onboarding"}))
+    return onboarding_docs
 
-def getUserDocuments(google_id, db : Database):
+def getUserDocuments(google_id, db : Database, columnToQuestionMap : dict[str, str]):
     # load all columns from the users row in the onboarding table
-    onboardingLoader = onboardingLoader(google_id, db)
-    followupLoader = followupLoader(google_id, db)
+    onboarding_docs = getOnboardingDocuments(google_id, db, columnToQuestionMap)
+    followup_docs = getFollowupDocuments(google_id, db)
     
-    # for each QA for google_id, load the summaries
-
     # Combine documents
-    documents = []
-    for loader in [onboardingLoader, followupLoader]:
-        documents.extend(loader.load())
+    documents = onboarding_docs + followup_docs
     return documents

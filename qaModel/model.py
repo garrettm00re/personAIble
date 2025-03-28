@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-from phoenix.otel import register
-tracer_provider = register(project_name="personAIble", endpoint="https://app.phoenix.arize.com/v1/traces")
+# from phoenix.otel import register
+# tracer_provider = register(project_name="personAIble", endpoint="https://app.phoenix.arize.com/v1/traces")
 
-from openinference.instrumentation.langchain import LangChainInstrumentor
-LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
+# from openinference.instrumentation.langchain import LangChainInstrumentor
+# LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
 
 print("INSTRUMENTED")
 
@@ -36,31 +36,21 @@ class State(TypedDict):
     first_name: str
     
 class PersonAIble:
-    def __init__(self, k = 0):
+    def __init__(self):
         # Initialize once, reuse for all questions
         self.embeddings = None
         self.vector_stores = {} # handle multiple users this way (google_id : vector_store). Not a good approach but functional for low # users.
-        self.llm = None
+        self.Ks = {} # google_id : K (length of vector store)
         self.graph = self._setup_graph()
+        print("IN INIT, self.graph == None: ", self.graph == None)
         self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        #self.vector_store = InMemoryVectorStore(self.embeddings)
         self.llm = ChatOpenAI(model="chatgpt-4o-latest")
-        #self.user = json.load(open("./charlesRiverAssets/who.json"))["Name"]
         self.prompt = lambda state: f"""You are {state['first_name']}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
         Question: {state['question']}
         Context: {[f"{question} : {answer}" for question, answer in state['context']]}
-        """  
-        #self.k = k
-        #self.user = None
-        #self.chat_history = []
+        """ 
+        print("INITIALIZED")
         
-    # def initialize(self):
-    #     """Lazy loading of expensive components"""
-    #     if self.graph is None:
-    #         # Only load these when first needed 
-            
-            
-    
     def _setup_graph(self):
         # research, retrieve, followup, generate
         graph_builder = StateGraph(State)
@@ -69,13 +59,20 @@ class PersonAIble:
         graph_builder.add_edge("research", "retrieve")
         graph_builder.add_edge("retrieve", "followUp")
         graph_builder.add_edge("followUp", "generate")
-        self.graph = graph_builder.compile()
+        return graph_builder.compile()
     
     def research(self, state: State):
         ## 2-3 questions could be too much or too little. How to decide depending on the request?
-        prompt = f"You are a helpful assistant preparing to answer the following question: {state['question']}. Generate a short (2 - 3 item) list of questions about the user that would help you to answer their request accurately. Return the list as a newline-separated string."
+        prompt = f"You are a helpful assistant preparing to answer the following question: {state['question']}. \
+        Generate the shortest list of questions about the user, {state['first_name']}, that would help you to answer their request \
+        accurately. Return the list as a newline-separated string. \
+        \
+        Rules: \
+        - If there are no questions, return exactly 'NA'. \
+        "
+
         response = self.llm.invoke(prompt)
-        questions = response.content.split("\n")
+        questions = response.content.split("\n") if response.content != "NA" else []
         desiredInformation = [question for question in questions] + [state["question"]]
         return {"desiredInformation": desiredInformation}
 
@@ -88,7 +85,7 @@ class PersonAIble:
             return [raw_results[i][0] for i in np.where(scores >= mean + (std*numStdDev))[0] if raw_results[i][1] >= minRelevance]
         
         vector_store = self.vector_stores[state["google_id"]]
-        K = len(vector_store.documents)
+        K = self.Ks[state["google_id"]]
         desiredInformation = state["desiredInformation"]
         qa_pairs = []
         with ThreadPoolExecutor() as executor:
@@ -126,29 +123,29 @@ class PersonAIble:
 
                     # make document and add concise answer to vector store
                     document = Document(page_content=summary, metadata={"source": "followup"})
-                    self.vector_store.add_documents([document])
+
+                    ### MAY NEED A LOCK HERE
+                    self.vector_stores[state["google_id"]].add_documents([document])
+                    self.Ks[state["google_id"]] += 1
     
         return {"context": allQA}
     
     def generate(self, state: State):
         print('generating')
         prompt = self.prompt(state)
-        #print('prompt: ', prompt)
         response = self.llm.invoke(prompt)
-        self.chat_history.append({"question": state["question"], "answer": response.content})
+        #self.chat_history.append({"question": state["question"], "answer": response.content})
 
         return {"answer": response.content}
     
-    def load_data(self, documents):
-        """Load documents into vector store"""
-        self.initialize()  # Ensure components are ready
-        self.vector_store.add_documents(documents=documents)
-    
     def answer_question(self, question: str, google_id: str, first_name: str) -> str:
         """Main interface for getting answers"""
+        print("ANSWERING QUESTION: ", question)
+        print("self.vector_stores: ", self.vector_stores)
         if google_id not in self.vector_stores:
             return "ERROR: No data found for this user"
         
+        print("self.graph == None: ", self.graph == None)
         result = self.graph.invoke({
             "question": question,
             "google_id": google_id,
@@ -159,6 +156,8 @@ class PersonAIble:
     def initUser(self, google_id: str, documents: List[Document]):
         self.vector_stores[google_id] = InMemoryVectorStore(self.embeddings)
         self.vector_stores[google_id].add_documents(documents=documents)
+        self.Ks[google_id] = len(documents)
 
     def deleteUser(self, google_id: str):
         del self.vector_stores[google_id]
+        del self.Ks[google_id]

@@ -4,6 +4,7 @@ from flask_socketio import SocketIO, emit
 import os, sys
 sys.path.append(os.getcwd())
 from qaModel import *
+from qaModel.loader import getUserDocuments
 from supabase import create_client
 import time
 from flask_socketio import SocketIO
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 from flask import current_app  # Import from flask
 from database import Database
 from user import User
+from utils import consolidateIntoContext, get_onboarding_maps
 
 load_dotenv()
 
@@ -26,26 +28,12 @@ login_manager.init_app(app)
 login_manager.login_view = 'landing'  # Redirect unauthorized users here
 
 db = Database()
-ai_model = load_initial_data()
+ai_model = PersonAIble()
 ai_model.db_client = db.db_client
-
-# for followup
-answer = None
-success = False
-
+followupAnswers = {} # google_id : (answer, success) # there is likely a cleaner way to manage state (could work with the model state)
 vector_stores = {} # google_id : vector_store
-
-# for onboarding
-def get_onboarding_qa_map():
-    onboarding_qa_map = {}
-    with open('static/onboardingQuestionMap.txt', 'r') as file:
-        for line in file:
-            line = line.strip()
-            line = line.split(" : ")
-            onboarding_qa_map[line[0]] = line[1]
-    return onboarding_qa_map
-questionToColumnMap = get_onboarding_qa_map()
-
+questionToColumnMap, columnToQuestionMap = get_onboarding_maps()
+followUpTimeout = 300 # seconds
 #### VIEWS ####
 @app.route('/')
 def landing():
@@ -83,11 +71,12 @@ def store_onboarding_answer():
     print("STORE ONBOARDING ANSWER CALLED")
     data = request.json
     column_name = questionToColumnMap[data['question'].strip()]
+    summary = consolidateIntoContext(data['question'], data['answer'], current_user.first_name, ai_model.llm)
     try:
         db.addOnboardingQA(
             column_name=column_name,
             answer=data['answer'],
-            google_id=current_user.google_id
+            google_id=current_user.google_id,
         )
         return jsonify({'status': 'success'})
     except Exception as e:
@@ -184,13 +173,7 @@ def handle_where_to():
             return jsonify({'error': str(e)}), 500
 
 @app.route('/api/followup', methods=['POST'])
-def handle_followup():
-    def consolidateIntoContext(question, answer, user_first_name, llm):
-        prompt = f"""You are given this question: {question} and answer: {answer}. 
-        Return a concise summary of the question and answer. 
-        The system asked {user_first_name} the question, and {user_first_name} answer the question."""
-        return llm.invoke(prompt).content
-    
+def handle_followup():    
     def is_authorized():
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
@@ -198,23 +181,24 @@ def handle_followup():
         token = auth_header.split(' ')[1]
         return token == os.environ.get('FOLLOW_UP')
     
-    
-    global answer, success # bad, need something that works for multiple users
-    answer = None
-    success = False
-    
-    print('handle followup')
+    # get data from request
     data = request.json
     QA = data.get('QA')
     google_id = data.get('google_id')
     first_name = data.get('first_name')
+    
     if not is_authorized():
         return jsonify({'error': 'Invalid authorization token'}), 401
     if not QA:
         return jsonify({'error': 'No QA pairs provided'}), 400
+    
+    print('handle followup')
+
+    # initialize followupAnswers for current user
+    followupAnswers[google_id] = (None, False)
 
     try:
-        question, answers = QA
+        question, answers = QA # answers is always an empty list if this method has been called properly
         question_id = str(time.time())
         # Send question to frontend
         socketio.emit('ask_followup', {
@@ -223,30 +207,30 @@ def handle_followup():
         })
 
         print('waiting for answer')
-        # Simple wait loop with timeout
-        timeout = time.time() + 60 # 1 minute timeout
+        timeout = time.time() + followUpTimeout # 5 minute timeout loop
+        answer, success = followupAnswers[google_id]
         while answer is None:
             if time.time() > timeout:
                 return jsonify({'error': 'Response timeout'}), 408
-            time.sleep(0.5)  # Small sleep to prevent CPU spinning
+            time.sleep(0.5)  # Small sleep to prevent CPU spinning 
+            answer, success = followupAnswers[google_id]
+
         if success:
-            print('GOT FOLLOWUP ANSWER')
             summary = consolidateIntoContext(question, answer, first_name, ai_model.llm)
-            summary = db.add_followup_QA(google_id, question, answer, summary) 
+            response = db.add_followup_QA(google_id, question, answer, summary) 
             return jsonify({'answer': answer, 'summary': summary})
 
     except Exception as e:
         print(f"Error in handle_followup: {str(e)}", flush=True)
         return jsonify({'error': str(e)}), 500
-    
+
 @socketio.on('followup_response')
 @login_required
 def handle_followup_response(data):
     print('handle followup response')
-    global answer, success
     answer = data.get('answer')
     if answer != None:
-        success = True
+        followupAnswers[current_user.google_id] = (answer, True)
 
 #### Auth endpoints ####
 from authlib.integrations.flask_client import OAuth
@@ -324,23 +308,22 @@ def logout():
 ################ In order for the model to run concurrently and for multiple users, need to maintain vector stores for each user (without inefficiency).
 # these methods enable the efficient creation and deletion of vector stores
 
-# Flask-Login signals
-@user_logged_in.connect_via(app)
-def on_user_logged_in(sender, user):
-    if user.onboarded:
-        ai_model.initUser(user.google_id) ## TODO - implement this
-# Flask-Login signals
-@user_logged_out.connect_via(app)
-def on_user_logged_out(sender, user):
-    if user.onboarded:
-        ai_model.deleteUser(user.google_id) ## TODO - implement this
-
 # Socket.IO disconnect
+@login_required
+@socketio.on('connect')
+def handle_login():
+    # this works beceause socket is only used in a view accessible once the user has logged in
+    if current_user.onboarded:
+        ai_model.initUser(current_user.google_id, getUserDocuments(current_user.google_id, db, columnToQuestionMap))
+        print("INITIALIZED USER: ", current_user.google_id)
+
 @login_required
 @socketio.on('disconnect')
 def handle_disconnect():
     if current_user.onboarded:
         ai_model.deleteUser(current_user.google_id) ## TODO - implement this
+        print("DELETED USER: ", current_user.google_id)
+
 #####################
 
 @login_manager.user_loader
