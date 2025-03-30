@@ -30,7 +30,6 @@ body {
         transparent 40%
     );
     z-index: -1;
-    animation: rotate 20s linear infinite;
 }
 
 /* Navigation */
