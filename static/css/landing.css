@@ -1,8 +1,12 @@
 :root {
-    --primary: #10a37f;
+    --primary:  #4724d6;
+    --ai-msg-color: color-mix(in srgb, var(--primary) 10%, transparent);
+    --ai-msg-color-border: color-mix(in srgb, var(--primary) 20%, transparent);
     --background: #000000;
     --text: #ffffff;
-    --card-bg: rgba(255, 255, 255, 0.05);
+    --demo-bg: rgba(255, 255, 255, 0.05);
+    --user-msg-color: color-mix(in srgb, var(--demo-bg) 10%, transparent);
+    --user-msg-color-border: color-mix(in srgb, var(--demo-bg) 20%, transparent);
 }
 
 body {
@@ -22,8 +26,8 @@ body {
     height: 200%;
     background: radial-gradient(
         circle at center,
-        rgba(16, 163, 127, 0.15),
-        transparent 70%
+        rgba(255, 255, 255, 0.322),
+        transparent 40%
     );
     z-index: -1;
     animation: rotate 20s linear infinite;
@@ -51,7 +55,9 @@ body {
 .logo {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(90deg, #fff, #10a37f);
+    background: linear-gradient(90deg, 
+        var(--text),
+        var(--primary));
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -73,7 +79,9 @@ body {
     font-weight: 700;
     line-height: 1.2;
     margin: 0;
-    background: linear-gradient(90deg, #ffffff, #10a37f);
+    background: linear-gradient(90deg, 
+         var(--text),
+        var(--primary));
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -90,7 +98,7 @@ body {
 .demo-container {
     width: 100%;
     max-width: 600px;
-    background: var(--card-bg);
+    background: var(--demo-bg);
     border-radius: 1rem;
     padding: 2rem;
     margin: 2rem auto;
@@ -106,14 +114,14 @@ body {
 }
 
 .message-bubble.ai {
-    background: rgba(16, 163, 127, 0.1);
-    border: 1px solid rgba(16, 163, 127, 0.2);
+    background: var(--ai-msg-color);
+    border: 1px solid var(--ai-msg-color-border);
     margin-right: auto;
 }
 
 .message-bubble.user {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--user-msg-color);
+    border: 1px solid var(--user-msg-color-border);
     margin-left: auto;
 }
 
@@ -133,7 +141,7 @@ body {
 }
 
 .feature-card {
-    background: var(--card-bg);
+    background: var(--demo-bg);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
     padding: 2rem;
@@ -152,7 +160,7 @@ body {
 /* Animations */
 @keyframes rotate {
     from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    to { transform: rotate(180deg); }
 }
 
 @keyframes fadeIn {
@@ -161,9 +169,10 @@ body {
 }
 
 @keyframes typing {
-    0% { content: '.'; }
-    33% { content: '..'; }
-    66% { content: '...'; }
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
 }
 
 /* Google Sign-in Button */
