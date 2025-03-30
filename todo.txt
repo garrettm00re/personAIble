@@ -3,7 +3,13 @@
 - implement a method for NER/information extraction and user model update -> https://chatgpt.com/share/67a1db20-3e0c-8003-a2c1-9bf1cd8d387e
 
 
-- unique users + onboarding flow! IN PROGRESS
+- unique users + onboarding flow! DONE
+- beautify frontend IN PROGRESS
+
+add a welcome view just after onboarding:
+    - gives users a quick rundown of what to expect
+    - highlights the user model 
+
 - modify research step to:
     - include a dry generation step (answers question without research) and ask model to generate questions
     that would improve the response

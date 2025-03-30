@@ -6,28 +6,14 @@
     <title>personAIble</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script defer src="/_vercel/insights/script.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="top-bar">
-        <div class="links">
-            <a href="#root" id="back-arrow" class="hidden" onclick="navigate('root')">&#8592;</a>
-            <a href="#root" onclick="navigate('root')">Home</a>
-            <a href="#who" onclick="navigate('who')">Who?</a>
-            <a href="#whereTo" onclick="navigate('whereTo')">Where To?</a>
-            <a href="#how" onclick="navigate('how')">How?</a>
-            <!-- <a href="#settings" onclick="navigate('settings')">&#128295;</a> -->
-        </div>
-    </div>
+    {% include 'components/top_bar.html' %}
     <div id="root" class="content">
-        <div class="qa-container" id="qa-container"></div>
-        <div class="input-bar">
-            <input type="text" id="user-input" placeholder="Type your question here...">
-            <button onclick="submit()">Submit</button>
-        </div>
+        {% include 'components/qa_interface.html' %}
     </div>
-    <div id="who" class="content hidden">Who? Page Content</div>
-    <div id="whereTo" class="content hidden">Where To? Page Content</div>
-    <div id="how" class="content hidden">How? Page Content</div>
+
 
     <!-- <div id="settings" class="content hidden">Settings Page Content</div> -->
     <script type="module" src="{{ url_for('static', filename='js/keybindings.js') }}"></script>

@@ -1,9 +1,18 @@
+:root {
+    --primary: #4724d6;
+    --background: #000000;
+    --text: #ffffff;
+    --bar-bg: rgba(71, 71, 71, 0.548);
+}
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     display: flex;
     flex-direction: column;
     height: 100vh;
+    background: var(--background);
+    color: var(--text);
 }
 
 .top-bar {
@@ -11,30 +20,27 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 40px;
-    background-color: #333;
-    color: white;
-    padding: 10px;
+    height: 60px;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
-    border-bottom: 1px solid #ddd;
-    z-index: 1000;
+    padding: 0 2rem;
 }
 
-.top-bar .links {
-    display: flex;
-    gap: 10px;
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, 
+        var(--text),
+        var(--primary));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.top-bar a {
-    color: white;
-    text-decoration: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-}
-
-.top-bar a:hover {
-    background-color: #555;
+.logo:hover {
+    opacity: 0.8;
 }
 
 .content {
@@ -67,19 +73,19 @@ body {
 
 .user-message {
     align-self: flex-end;
-    background-color: #d1e7dd;
+    background-color: var(--primary);
 }
 
 .system-message {
     align-self: flex-start;
-    background-color: #f8d7da;
+    background-color: var(--bar-bg);
 }
 
 .input-bar {
     display: flex;
     padding: 10px;
-    background-color: #f1f1f1;
-    border-top: 1px solid #ddd;
+    background-color: #f1f1f100;
+    border-top: 1px solid #00000000;
     position: fixed;
     top: 87vh;
     bottom: 4vh;
@@ -92,6 +98,7 @@ body {
     flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
+    background-color: var(--bar-bg);
     border-radius: 5px;
     margin-right: 10px;
 }
@@ -197,4 +204,30 @@ html {
 .follow-up-indicator {
     margin-right: 8px;
     color: #666;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, 
+        var(--text),
+        var(--primary));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.gradient-blur {
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle at center,
+        rgba(255, 255, 255, 0.441),
+        transparent 40%
+    );
+    z-index: -1;
+    animation: rotate 20s linear infinite;
 }
