@@ -5,31 +5,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>personAIble - Your AI Companion</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='/css/landing.css') }}">
+    <!-- Add Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Gradient background element -->
+    <div class="gradient-blur"></div>
+
     <nav class="landing-nav">
-        <div class="logo">personAIble</div>
-        <div class="auth-buttons">
-            <a href="{{ url_for('auth.google_login') }}" class="google-btn">
-                <img src="{{ url_for('static', filename='img/google-logo.png') }}" alt="Google Logo">
-                Sign in with Google
-            </a>
+        <div class="nav-content">
+            <div class="logo">personAIble</div>
+            <div class="auth-buttons">
+                <a href="{{ url_for('auth.google_login') }}" class="google-btn">
+                    <img src="{{ url_for('static', filename='img/google-logo.png') }}" alt="Google Logo">
+                    <span>Sign in with Google</span>
+                </a>
+            </div>
         </div>
     </nav>
 
     <main>
         <!-- Hero Section -->
         <section class="hero">
-            <h1>Your Personal AI Assistant</h1>
-            <div class="demo-animation">
-                <!-- Dynamic visualization goes here -->
+            <h1 class="gradient-text">The Smartest Friend<br>You'll Ever Have</h1>
+            <p class="subtitle">Experience conversations that understand you deeply,<br>learn from every interaction, and grow with you.</p>
+            
+            <!-- Animated demo container -->
+            <div class="demo-container">
+                <div class="chat-preview">
+                    <div class="message-bubble ai">
+                        I remember you mentioned loving jazz. Have you listened to Bill Evans?
+                    </div>
+                    <div class="message-bubble user">
+                        No, I haven't! What album should I start with?
+                    </div>
+                    <div class="message-bubble ai typing">
+                        Given your taste in modal jazz
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- Features -->
+        <!-- Features Grid -->
         <section class="features">
-            <!-- Key features with icons/animations -->
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Learns & Remembers</h3>
+                    <p>Builds a deep understanding of your preferences, history, and context.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💭</div>
+                    <h3>Natural Conversations</h3>
+                    <p>Engage in fluid, meaningful dialogue that feels genuinely personal.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Grows With You</h3>
+                    <p>Adapts and evolves based on your interactions and feedback.</p>
+                </div>
+            </div>
         </section>
     </main>
 
