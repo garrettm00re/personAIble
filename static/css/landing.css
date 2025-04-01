@@ -20,15 +20,14 @@ body {
 /* Gradient background effect */
 .gradient-blur {
     position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(
-        circle at center,
-        rgba(255, 255, 255, 0.212),
-        transparent 40%
-    );
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    
+    background: radial-gradient(ellipse at top, 
+    #ffffff2f, 
+    transparent);
     z-index: -1;
 }
 
