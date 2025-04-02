@@ -1,10 +1,4 @@
 export function initializeChat() {
-    document.getElementById('user-input').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            submit();
-        }
-    });
 }
 
 export async function submit() {
@@ -53,7 +47,7 @@ export function addMessage(text, type, isFollowUp = false) {
     // type: user, system
     // need a way to denote followup questions and followup answers
     // need a way to return the followup question to the backend (and then the model)
-
+    console.log('addMessage. text ===', text)
     const qaContainer = document.getElementById('qa-container');
     const message = document.createElement('div');
     message.className = `message ${type}-message`;
@@ -72,5 +66,32 @@ export function addMessage(text, type, isFollowUp = false) {
     message.appendChild(textSpan);
     
     qaContainer.appendChild(message);
-    qaContainer.scrollTop = qaContainer.scrollHeight;
+
+    console.log('autoscrolling') // not working at the moment
+    requestAnimationFrame(() => {
+        qaContainer.scrollTop = qaContainer.scrollHeight;
+    });
 }
+
+function initializeTextarea() {
+    const textarea = document.getElementById('user-input');
+    
+    function autoResize() {
+        textarea.style.height = 'auto';  // Reset height
+        const newHeight = Math.min(textarea.scrollHeight, 200);  // Cap at max-height
+        textarea.style.height = newHeight + 'px';
+        
+        // Update container height
+        const container = document.querySelector('.input-container');
+        container.style.height = (newHeight) + 'px';  // Add padding
+    }
+
+    // Call on input changes
+    textarea.addEventListener('input', autoResize);
+    
+    // Initial size
+    autoResize();
+}
+
+// Add to your initialization code
+document.addEventListener('DOMContentLoaded', initializeTextarea);

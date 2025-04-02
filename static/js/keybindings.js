@@ -1,5 +1,7 @@
-document.addEventListener('keydown', (event) => {
-    if (event.target.id === 'user-input' && event.key === 'Enter') {
+const textarea = document.getElementById('user-input');
+
+textarea.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         submit();
     }
