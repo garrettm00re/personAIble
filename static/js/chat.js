@@ -7,6 +7,10 @@ export async function submit() {
     const qaContainer = document.getElementById('qa-container');
     const lastMessage = qaContainer.lastElementChild;
     const isQuestion = !lastMessage || !lastMessage.classList.contains('system-message') || !lastMessage.classList.contains('follow-up');
+    // reset size of input container
+    console.log('ok whhhhhhhhhhhhhh')
+    const inputContainer = document.getElementById("user-input-container")
+    inputContainer.style.height = `40px`;
     if (isQuestion) {
         console.log('Submitting question:', userInput);
         addMessage(userInput, 'user');
@@ -74,18 +78,18 @@ export function addMessage(text, type, isFollowUp = false) {
 }
 
 function initializeTextarea() {
+    console.log("Initializing textarea");
     const textarea = document.getElementById('user-input');
-    
+    const container = document.querySelector('.input-container');
     function autoResize() {
-        textarea.style.height = 'auto';  // Reset height
-        const newHeight = Math.min(textarea.scrollHeight, 200);  // Cap at max-height
-        textarea.style.height = newHeight + 'px';
-        
-        // Update container height
-        const container = document.querySelector('.input-container');
-        container.style.height = (newHeight) + 'px';  // Add padding
+        console.log("AUTO RESIZING TEXT INPUT")
+        container.style.height = 'auto';
+        // Get the input bar's height (includes textarea and button)
+        const userInputHeight = textarea.scrollHeight; // 5 accounts for border
+        const maxHeight = window.innerHeight * 0.4; // 40vh maximum (in pixels)
+        const newHeight = Math.min(userInputHeight, maxHeight); // Add padding
+        container.style.height = `${newHeight}px`;
     }
-
     // Call on input changes
     textarea.addEventListener('input', autoResize);
     
@@ -93,5 +97,8 @@ function initializeTextarea() {
     autoResize();
 }
 
-// Add to your initialization code
-document.addEventListener('DOMContentLoaded', initializeTextarea);
+// Make sure we're calling the initialization
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Content Loaded");
+    initializeTextarea();
+});

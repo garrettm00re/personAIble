@@ -95,11 +95,12 @@ body {
     left: 0;
     width: calc(100% - 17px);  /* Subtract scrollbar width */
     padding: 0;
-    backdrop-filter: blur(12px); 
+    /* backdrop-filter: blur(12px);  */
     bottom: 20px;
     max-height: calc(40vh);     /* Maximum height: 40% of viewport */
-    min-height: 80px;          /* Minimum height when single line */
+    /* min-height: 80px;          Minimum height when single line */
     transition: height 0.2s;    /* Smooth height transitions */
+    min-height: 6vh;
 }
 
 /* Move your existing input-bar styles inside the container */
@@ -112,20 +113,21 @@ body {
     left: auto;
     transform: none;
     display: flex; /* flex row */
+    height: 100%;
+    backdrop-filter: blur(12px); 
 }
 
 .input-bar textarea {
     flex: 1;
-    padding: 10px;
     border: 1px solid #00000000; /* transparent */
     background-color: #00000000; 
     /* border-radius: 5px; */
+    padding: 0px;
     margin-right: 10px;
     color: var(--text);
-    max-height: 200px;      /* Maximum height before scrolling */
-    min-height: 40px;       /* Minimum height (single line) */
     overflow-y: auto;       /* Adds vertical scrollbar when needed */
     resize: none;           /* Prevents manual resizing */
+    height: 100%;
 }
 
 .input-bar button {

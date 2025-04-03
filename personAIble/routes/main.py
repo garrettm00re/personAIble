@@ -8,8 +8,9 @@ def landing():
     if current_user.is_authenticated:
         if not current_user.onboarded:
             return redirect(url_for('onboarding.onboarding'))
-        else:
-            return redirect(url_for('main.main'))
+        # Decided I want people to be able to re-access the landing page
+        # else:
+        #     return redirect(url_for('main.main')) 
     return render_template('landing.html')
 
 @main_bp.route('/app')

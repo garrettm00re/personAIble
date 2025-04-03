@@ -5,6 +5,7 @@ const backArrow = document.getElementById('back-arrow');
 const pages = document.querySelectorAll('.content');
 
 export async function navigate(targetId) {
+    console.log(pages, "PAGESSS")
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById(targetId);
     targetPage.classList.remove('hidden');
