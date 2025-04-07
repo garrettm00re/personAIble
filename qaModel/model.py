@@ -7,8 +7,6 @@ load_dotenv(override=True)
 # from openinference.instrumentation.langchain import LangChainInstrumentor
 # LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
 
-print("INSTRUMENTED")
-
 from langchain import hub
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -42,15 +40,15 @@ class PersonAIble:
         self.vector_stores = {} # handle multiple users this way (google_id : vector_store). Not a good approach but functional for low # users.
         self.Ks = {} # google_id : K (length of vector store)
         self.graph = self._setup_graph()
-        print("IN INIT, self.graph == None: ", self.graph == None)
         self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
         self.llm = ChatOpenAI(model="chatgpt-4o-latest")
         self.prompt = lambda state: f"""You are {state['first_name']}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
         Question: {state['question']}
         Context: {[f"{question} : {answer}" for question, answer in state['context']]}
         """ 
-        print("INITIALIZED")
-        
+        self.API = os.getenv("PRODUCTION_API") if os.getenv("ENV") == "PRODUCTION" else os.getenv("DEVELOPMENT_API")
+        print("MODEL INITIALIZED")
+
     def _setup_graph(self):
         # research, retrieve, followup, generate
         graph_builder = StateGraph(State)
@@ -113,7 +111,7 @@ class PersonAIble:
             if QA[1] == [] and QA[0] != state["question"]:
                 # Get answer from askUser endpoint
                 response = requests.post(
-                    'http://localhost:5000/api/followup',
+                    self.API + '/api/followup',
                     json={'QA': QA, 'google_id': state['google_id'], 'first_name': state['first_name']},
                     headers={'Authorization': f'Bearer {os.environ.get("FOLLOW_UP")}'}
                 )
@@ -154,6 +152,7 @@ class PersonAIble:
         return result['answer']
     
     def initUser(self, google_id: str, documents: List[Document]):
+        print('just called init user, what up world')
         self.vector_stores[google_id] = InMemoryVectorStore(self.embeddings)
         self.vector_stores[google_id].add_documents(documents=documents)
         self.Ks[google_id] = len(documents)

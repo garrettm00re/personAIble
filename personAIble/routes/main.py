@@ -18,4 +18,4 @@ def landing():
 def main():
     if not current_user.onboarded:
         return redirect(url_for('onboarding.onboarding'))
-    return render_template('app.html') 
+    return render_template('app2.html') 
