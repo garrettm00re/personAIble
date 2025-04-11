@@ -1,6 +1,39 @@
-from .extensions import login_manager, db
+from .extensions import login_manager, db, qdrant, ai_model
+from qdrant_client.http import models
+import os
 
-@login_manager.user_loader
-def load_user(user_id: str):
-    """User loader for Flask-Login"""
-    return db.get_by_google_id(user_id)
+# @login_manager.user_loader
+# def load_user(user_id: str):
+#     """User loader for Flask-Login"""
+#     return db.get_by_google_id(user_id)
+
+def create_user_collection(google_id: str, documents):
+    collection_name = f"user_{google_id}"
+    
+    # Create collection with same dimensions as your embeddings
+    qdrant.recreate_collection(
+        collection_name=collection_name,
+        vectors_config=models.VectorParams(
+            size=os.getenv("EMBEDDING_SIZE"),  # OpenAI embedding size
+            distance=models.Distance.COSINE
+        )
+    )
+    
+    # Add documents
+    vectors = []
+    for doc in documents:
+        embedding = ai_model.embeddings.embed_query(doc.page_content)
+        vectors.append(models.PointStruct(
+            id=hash(doc.page_content),  # or use sequential IDs
+            vector=embedding,
+            payload={"text": doc.page_content, "metadata": doc.metadata}
+        ))
+    
+    # Upload in batches
+    BATCH_SIZE = 100
+    for i in range(0, len(vectors), BATCH_SIZE):
+        batch = vectors[i:i + BATCH_SIZE]
+        qdrant.upsert(
+            collection_name=collection_name,
+            points=batch
+        )

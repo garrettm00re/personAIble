@@ -1,3 +1,16 @@
+from cryptography.fernet import Fernet
+import os
+
+# Initialize encryption key
+ENCRYPTION_KEY = os.getenv('ENCRYPTION_KEY')
+fernet = Fernet(ENCRYPTION_KEY)
+
+def encrypt_user_id(google_id: str) -> str:
+    return fernet.encrypt(google_id.encode()).decode()
+
+def decrypt_user_id(encrypted_id: str) -> str:
+    return fernet.decrypt(encrypted_id.encode()).decode()
+
 def consolidateIntoContext(question, answer, user_first_name, llm):
     prompt = f"""The system asked {user_first_name} the question '{question}', and {user_first_name} \
     answered the question '{answer}'.

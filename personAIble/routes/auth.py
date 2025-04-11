@@ -2,6 +2,7 @@ from flask import Blueprint, redirect, url_for, current_app
 from flask_login import login_user, login_required, logout_user, current_user
 from ..extensions import oauth, db
 from user import User
+from utils import encrypt_user_id
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -30,23 +31,21 @@ def google_callback():
         picture = user_info.get('picture')
 
         user = db.get_by_google_id(google_id)
-
         if not user:
             db.save(User(google_id=google_id, email=email, first_name=first_name,
                         last_name=last_name, profile_pic=picture))
         
-        login_user(user)
-
+        # Instead of login_user, encrypt the user ID
+        encrypted_id = encrypt_user_id(google_id)
+        
         if not user.onboarded:
-            return redirect(url_for('onboarding.onboarding'))
-        return redirect(url_for('main.main'))
+            return redirect(f'/onboarding?uid={encrypted_id}')
+        return redirect(f'/app?uid={encrypted_id}')
 
     except Exception as e:
         current_app.logger.error(f"Google callback error: {e}")
-        return redirect(url_for('auth.google_login', error="Google login failed"))
+        return redirect('/auth/google')
 
 @auth_bp.route('/auth/logout')
-@login_required
 def logout():
-    logout_user()
-    return redirect(url_for('main.landing')) 
+    return redirect('/')  # Just redirect, no state to clear 

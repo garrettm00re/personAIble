@@ -81,10 +81,11 @@ class Database:
             .execute()
         return result.data[0] if result.data else None
 
-    def update_followup_answer(self, google_id, answer, summary):
-        # Update the most recent unanswered question
+    def update_followup_answer(self, google_id, question, answer, summary):
+        # Update the specific unanswered question
         self.db_client.table('QA')\
             .update({'answer': answer, 'summary': summary})\
             .eq('google_id', google_id)\
+            .eq('question', question)\
             .is_('answer', 'null')\
             .execute()
