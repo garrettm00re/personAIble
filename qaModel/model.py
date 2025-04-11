@@ -17,12 +17,7 @@ import numpy as np
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
-from supabase import create_client
 import os
-
-supabase_url = os.environ.get("SUPABASE_URL")
-supabase_key = os.environ.get("SUPABASE_GOD_KEY") # probably not best practice but it works for now
-supabase = create_client(supabase_url, supabase_key)
 
 class State(TypedDict):
     QA: List[tuple[str, List[str]]] # list of tuples (question, answer(s))
@@ -49,6 +44,9 @@ class PersonAIble:
         self.API = os.getenv("PRODUCTION_API") if os.getenv("ENV") == "PRODUCTION" else os.getenv("DEVELOPMENT_API")
         print("MODEL INITIALIZED")
 
+    # NOTE : when implementing "chat history" for context you should add a "timestamp" each message in the database (and also store messages) 
+    # you can use the timestamp in a function to compute relevance based on recency
+    
     def _setup_graph(self):
         # research, retrieve, followup, generate
         graph_builder = StateGraph(State)

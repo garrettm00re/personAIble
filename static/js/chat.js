@@ -8,7 +8,6 @@ export async function submit() {
     const lastMessage = qaContainer.lastElementChild;
     const isQuestion = !lastMessage || !lastMessage.classList.contains('system-message') || !lastMessage.classList.contains('follow-up');
     // reset size of input container
-    console.log('ok whhhhhhhhhhhhhh')
     const inputContainer = document.getElementById("user-input-container")
     inputContainer.style.height = `40px`;
     if (isQuestion) {
