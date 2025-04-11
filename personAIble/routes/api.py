@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
-from ..extensions import db, ai_model, socketio, followupAnswers, followUpTimeout
+#from ..extensions import db, ai_model, socketio, followupAnswers, followUpTimeout
 import os
 import time
 from utils import consolidateIntoContext
@@ -11,8 +11,6 @@ api_bp = Blueprint('api', __name__)
 @login_required
 def ask():
     try:
-        ############# if not google id in model vector stores, init here
-        
         data = request.json
         question = data.get('question')
         
@@ -26,73 +24,6 @@ def ask():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    
-# @api_bp.route('/api/how', methods=['GET', 'PUT'])
-# @login_required
-# def handle_how():
-#     if request.method == 'GET':
-#         try:
-#             response = db.table('plans').select('subplans').eq('id', 1).execute()
-#             data = response.data[0]['subplans'] if response.data else {}
-#             return data
-#         except Exception as e:
-#             print(f"Error loading how data: {str(e)}", flush=True)
-#             return jsonify({'error': str(e)}), 500
-    
-#     elif request.method == 'PUT':
-#         try:
-#             new_data = request.json
-#             result = db.table('plans').update({"subplans": new_data}).eq('id', 1).execute()
-#             print("RESULT: ", result)
-#             return jsonify({'message': 'Data updated successfully'})
-#         except Exception as e:
-#             print(f"Error updating how data: {str(e)}", flush=True)
-#             return jsonify({'error': str(e)}), 500
-
-# @api_bp.route('/api/who', methods=['GET', 'PUT'])
-# @login_required
-# def handle_who():
-#     if request.method == 'GET':
-#         try:
-#             response = db.table('profiles').select('information').eq('id', 1).execute()
-#             data = response.data[0]['information'] if response.data else {}
-#             return data
-#         except Exception as e:
-#             print(f"Error loading who data: {str(e)}", flush=True)
-#             return jsonify({'error': str(e)}), 500
-    
-#     elif request.method == 'PUT':
-#         try:
-#             new_data = request.json
-#             # Update data in Supabase
-#             result = db.table('profiles').update({"information": new_data}).eq('id', 1).execute()
-#             print("RESULT: ", result)
-#             return jsonify({'message': 'Data updated successfully'})
-#         except Exception as e:
-#             print(f"Error updating who data: {str(e)}", flush=True)
-#             return jsonify({'error': str(e)}), 500
-
-# @api_bp.route('/api/whereTo', methods=['GET', 'PUT'])
-# @login_required
-# def handle_where_to():
-#     if request.method == 'GET':
-#         try:
-#             response = db.table('goals').select('desires').eq('id', 1).execute()
-#             data = response.data[0]['desires'] if response.data else {}
-#             return data
-#         except Exception as e:
-#             print(f"Error loading whereTo data: {str(e)}", flush=True)
-#             return jsonify({'error': str(e)}), 500
-    
-#     elif request.method == 'PUT':
-#         try:
-#             new_data = request.json
-#             result = db.table('goals').update({"desires": new_data}).eq('id', 1).execute()
-#             print("RESULT: ", result)
-#             return jsonify({'message': 'Data updated successfully'})
-#         except Exception as e:
-#             print(f"Error updating whereTo data: {str(e)}", flush=True)
-#             return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/api/followup', methods=['POST'])
 def handle_followup():    
@@ -115,37 +46,38 @@ def handle_followup():
     if not QA:
         return jsonify({'error': 'No QA pairs provided'}), 400
     
-    print('handle followup')
-
-    # initialize followupAnswers for current user
-    followupAnswers[google_id] = (None, False)
+    followupAnswers[google_id] = (None, False) # initialize followupAnswers for current user
 
     try:
-        question, answers = QA # answers is always an empty list if this method has been called properly
-        question_id = str(time.time())
-        # Send question to frontend
-        socketio.emit('ask_followup', {
-            'question': question,
-            'question_id': question_id
-        })
-
-        print('waiting for answer')
-        timeout = time.time() + followUpTimeout # 5 minute timeout loop
-        answer, success = followupAnswers[google_id]
-        while answer is None:
-            if time.time() > timeout:
-                return jsonify({'error': 'Response timeout'}), 408
-            time.sleep(0.5)  # Small sleep to prevent CPU spinning 
-            answer, success = followupAnswers[google_id]
-
-        if success:
-            summary = consolidateIntoContext(question, answer, first_name, ai_model.llm)
-            response = db.add_followup_QA(google_id, question, answer, summary) 
-            return jsonify({'answer': answer, 'summary': summary})
+        question, answers = QA
+        # Store question in QA table with empty answer
+        db.add_followup_QA(google_id, question, None, None)
+        return jsonify({'status': 'question_stored'})
 
     except Exception as e:
         print(f"Error in handle_followup: {str(e)}", flush=True)
         return jsonify({'error': str(e)}), 500
 
-# Add the other API endpoints (handle_how, handle_who, handle_where_to, handle_followup)
-# [Previous implementations remain the same, just moved to this file] 
+# New endpoint for frontend to check for questions
+@api_bp.route('/api/check-followup', methods=['GET'])
+@login_required
+def check_followup():
+    # Get unanswered question for user
+    unanswered = db.get_unanswered_followup(current_user.google_id)
+    return jsonify({
+        'hasFollowup': unanswered is not None,
+        'question': unanswered['question'] if unanswered else None
+    })
+
+# New endpoint to submit followup answer
+@api_bp.route('/api/submit-followup', methods=['POST'])
+@login_required
+def submit_followup():
+    data = request.json
+    answer = data.get('answer')
+    if answer:
+        summary = consolidateIntoContext(data.get('question'), answer, 
+                                       current_user.first_name, ai_model.llm)
+        db.update_followup_answer(current_user.google_id, answer, summary)
+        return jsonify({'status': 'success'})
+    return jsonify({'error': 'No answer provided'}), 400

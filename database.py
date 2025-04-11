@@ -69,3 +69,22 @@ class Database:
     def finished_onboarding(self, user: User):
         user.onboarded = True
         self.db_client.table('profiles').update({'onboarded': True}).eq('google_id', user.google_id).execute()
+
+    def get_unanswered_followup(self, google_id):
+        # Get most recent QA entry with null answer
+        result = self.db_client.table('QA')\
+            .select('*')\
+            .eq('google_id', google_id)\
+            .is_('answer', 'null')\
+            .order('created_at.desc')\
+            .limit(1)\
+            .execute()
+        return result.data[0] if result.data else None
+
+    def update_followup_answer(self, google_id, answer, summary):
+        # Update the most recent unanswered question
+        self.db_client.table('QA')\
+            .update({'answer': answer, 'summary': summary})\
+            .eq('google_id', google_id)\
+            .is_('answer', 'null')\
+            .execute()
