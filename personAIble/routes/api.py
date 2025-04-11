@@ -12,6 +12,7 @@ api_bp = Blueprint('api', __name__)
 def ask():
     try:
         ############# if not google id in model vector stores, init here
+        
         data = request.json
         question = data.get('question')
         
