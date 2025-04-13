@@ -1,12 +1,6 @@
 from dotenv import load_dotenv
 load_dotenv(override=True)
 
-# from phoenix.otel import register
-# tracer_provider = register(project_name="personAIble", endpoint="https://app.phoenix.arize.com/v1/traces")
-
-# from openinference.instrumentation.langchain import LangChainInstrumentor
-# LangChainInstrumentor().instrument(tracer_provider=tracer_provider)
-
 from langchain import hub
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -19,7 +13,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import os
 from qdrant_client.http.models import Filter
-from langchain.vectorstores import Qdrant
+from langchain_community.vectorstores import Qdrant
+from ..personAIble.extensions import qdrant # this must be bad form
 
 class State(TypedDict):
     QA: List[tuple[str, List[str]]] # list of tuples (question, answer(s))

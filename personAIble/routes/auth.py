@@ -1,15 +1,16 @@
-from flask import Blueprint, redirect, url_for, current_app
-from flask_login import login_user, login_required, logout_user, current_user
+from flask import Blueprint, redirect, url_for, current_app, request
+#from flask_login import login_user, login_required, logout_user, current_user
 from ..extensions import oauth, db
 from user import User
-from utils import encrypt_user_id
+from utils import encrypt_user_id, decrypt_user_id, get_user_from_request
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/auth/google')
 def google_login():
-    if current_user.is_authenticated:
-        if not current_user.onboarded:
+    user = get_user_from_request(request, db)
+    if user:
+        if not user.onboarded:
             return redirect(url_for('onboarding.onboarding'))
         else:
             return redirect(url_for('main.main'))

@@ -1,13 +1,13 @@
 from flask import Flask
-from .extensions import socketio, login_manager, oauth, db
 from .routes.auth import auth_bp
 from .routes.main import main_bp
 from .routes.onboarding import onboarding_bp
 from .routes.api import api_bp
 from . import userManager  # Import userManager to register the user loader
-from .sockets import handlers  # Import socket handlers
+# from .sockets import handlers  # Import socket handlers
 import os
 from dotenv import load_dotenv
+from .extensions import socketio, oauth
 
 load_dotenv()
 
@@ -21,8 +21,8 @@ def create_app():
     
     # Initialize extensions
     socketio.init_app(app)
-    login_manager.init_app(app)
-    login_manager.login_view = 'main.landing'
+    # login_manager.init_app(app)
+    # login_manager.login_view = 'main.landing'
     
     # Initialize OAuth
     oauth.init_app(app)

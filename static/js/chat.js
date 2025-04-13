@@ -1,3 +1,6 @@
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('uid');
+
 export function initializeChat() {
 }
 
@@ -15,7 +18,7 @@ export async function submit() {
         addMessage(userInput, 'user');
         input.value = '';
         try {
-            const response = await fetch('/api/ask', {
+            const response = await fetch(`/api/ask/?uid=${userId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

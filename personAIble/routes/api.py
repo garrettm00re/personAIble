@@ -1,33 +1,30 @@
 from flask import Blueprint, jsonify, request
 from ..extensions import db, ai_model
-from utils import decrypt_user_id, consolidateIntoContext
+from utils import decrypt_user_id, consolidateIntoContext, get_user_from_request
 import os
 
 api_bp = Blueprint('api', __name__)
 
-@api_bp.route('/api/ask', methods=['POST'])
+@api_bp.route('/api/ask/', methods=['POST'])
 def ask():
-    user_id = request.args.get('uid')
-    if not user_id:
+    user = get_user_from_request(request, db)
+    if not user:
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
-        google_id = decrypt_user_id(user_id)
         data = request.json
         question = data.get('question')
         
         if not question:
             return jsonify({'error': 'No question provided'}), 400
         
-        user = db.get_by_google_id(google_id)
-        answer = ai_model.answer_question(question, google_id, user.first_name)
-        
+        answer = ai_model.answer_question(question, user.google_id, user.first_name)
         return jsonify({'answer': answer})
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api_bp.route('/api/followup', methods=['POST'])
+@api_bp.route('/api/followup/', methods=['POST'])
 def handle_followup():    
     def is_authorized():
         auth_header = request.headers.get('Authorization')
@@ -54,39 +51,36 @@ def handle_followup():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api_bp.route('/api/check-followup', methods=['GET'])
+@api_bp.route('/api/check-followup/', methods=['GET'])
 def check_followup():
-    user_id = request.args.get('uid')
-    if not user_id:
+    user = get_user_from_request(request, db)
+    if not user:
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
-        google_id = decrypt_user_id(user_id)
-        unanswered = db.get_unanswered_followup(google_id)
+        unanswered = db.get_unanswered_followup(user.google_id)
         return jsonify({
             'hasFollowup': unanswered is not None,
             'question': unanswered['question'] if unanswered else None
         })
-    except:
-        return jsonify({'error': 'Invalid authentication'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@api_bp.route('/api/submit-followup', methods=['POST'])
+@api_bp.route('/api/submit-followup/', methods=['POST'])
 def submit_followup():
-    user_id = request.args.get('uid')
-    if not user_id:
+    user = get_user_from_request(request, db)
+    if not user:
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
-        google_id = decrypt_user_id(user_id)
         data = request.json
         answer = data.get('answer')
         question = data.get('question')
         
         if answer and question:
-            user = db.get_by_google_id(google_id)
             summary = consolidateIntoContext(question, answer, user.first_name, ai_model.llm)
-            db.update_followup_answer(google_id, question, answer, summary)
+            db.update_followup_answer(user.google_id, question, answer, summary)
             return jsonify({'status': 'success'})
         return jsonify({'error': 'No answer or question provided'}), 400
-    except:
-        return jsonify({'error': 'Invalid authentication'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

@@ -1,6 +1,7 @@
-from .extensions import login_manager, db, qdrant, ai_model
 from qdrant_client.http import models
 import os
+from .extensions import qdrant, ai_model
+
 
 # @login_manager.user_loader
 # def load_user(user_id: str):

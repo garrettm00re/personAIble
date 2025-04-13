@@ -1,5 +1,17 @@
 let onboardingQuestions = [];
 
+let currentQuestionIndex = 0;
+let userName = "";
+let userFirstName = "";
+let onboardingDelay = 660;
+// Add random variation of +/- 200ms to the base delay
+let maxVariation = 260;
+let getRandomDelay = () => onboardingDelay + (Math.random() * maxVariation - maxVariation/2);
+
+
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('uid');
+
 async function loadOnboardingQuestions() {
     try {
         const response = await fetch('/static/onboardingQuestions.txt');
@@ -12,15 +24,6 @@ async function loadOnboardingQuestions() {
         console.error('Error loading onboarding questions:', error);
     }
 }
-
-let currentQuestionIndex = 0;
-let userName = "";
-let userFirstName = "";
-let onboardingDelay = 660;
-// Add random variation of +/- 200ms to the base delay
-let maxVariation = 260;
-let getRandomDelay = () => onboardingDelay + (Math.random() * maxVariation - maxVariation/2);
-
 export async function initializeOnboarding() {
     await loadOnboardingQuestions();
 
@@ -66,15 +69,15 @@ export async function initializeOnboarding() {
                 // Option 2: Wait for success (if you want to ensure the POST worked)
                 setTimeout(async () => {
                     try {
-                        const response = await fetch('/onboarding/submit', {
+                        const response = await fetch(`/onboarding/submit/?uid=${userId}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             }
                         });
-                        if (response.ok) {
-                            window.location.href = '/app';
-                        }
+                        // if (response.ok) {
+                        //     window.location.href = '/app';
+                        // }
                     } catch (error) {
                         console.error('Error:', error);
                     }
@@ -90,7 +93,7 @@ async function storeAnswer(questionIndex, userAnswer) {
     console.log(userAnswer)
     try {
         // This POST request happens in the background
-        const response = await fetch('/onboarding/store', {
+        const response = await fetch(`/onboarding/store/?uid=${userId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

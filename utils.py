@@ -32,3 +32,15 @@ def get_onboarding_maps():
             questionToColumnMap[line[0]] = line[1]
             columnToQuestionMap[line[1]] = line[0]
     return questionToColumnMap, columnToQuestionMap
+
+def get_user_from_request(request, db):
+    try:
+        user_id = request.args.get('uid')
+        google_id = decrypt_user_id(user_id)
+        user = db.get_by_google_id(google_id)
+        return user
+    except Exception as e:
+        print('Error getting user from request: ', e)
+        print(request.args, 'ARGZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ')
+        print(request, 'request')
+        return None

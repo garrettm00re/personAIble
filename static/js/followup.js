@@ -1,9 +1,12 @@
 import { addMessage } from './chat.js';
 
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('uid');
+
 async function startFollowupPolling() {
     while (true) {
         try {
-            const response = await fetch('/api/check-followup');
+            const response = await fetch(`/api/check-followup/?uid=${userId}`); // 
             const data = await response.json();
             
             if (data.hasFollowup) {
