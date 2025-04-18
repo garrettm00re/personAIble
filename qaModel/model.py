@@ -12,9 +12,8 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import os
-from qdrant_client.http.models import Filter
-from langchain_community.vectorstores import Qdrant
-from ..personAIble.extensions import qdrant # this must be bad form
+from langchain_qdrant import Qdrant
+from clients import qdrant # this must be bad form
 
 class State(TypedDict):
     QA: List[tuple[str, List[str]]] # list of tuples (question, answer(s))
@@ -131,6 +130,20 @@ class PersonAIble:
 
         return {"answer": response.content}
     
+    def answer_question(self, question: str, google_id: str, first_name: str) -> str:
+        """Main interface for getting answers"""
+        collection_name = f"user_{google_id}"
+
+        if collection_name not in self.vector_stores:
+            return "ERROR: No data found for this user"
+        
+        print("self.graph == None: ", self.graph == None)
+        result = self.graph.invoke({
+            "question": question,
+            "google_id": google_id,
+            "first_name": first_name,
+        })
+        return result['answer']
     def answer_question(self, question: str, google_id: str, first_name: str):
         collection_name = f"user_{google_id}"
         
@@ -145,18 +158,18 @@ class PersonAIble:
         docs = vector_store.similarity_search(question)
         # ... rest of your code ...
     
-    def initUser(self, google_id: str, documents):
-        collection_name = f"user_{google_id}"
+    # def initUser(self, google_id: str, documents):
+    #     collection_name = f"user_{google_id}"
         
-        # Create and populate collection
-        create_user_collection(google_id, documents)
+    #     # Create and populate collection
+    #     qdrant.create_user_collection(google_id, documents)
         
-        # No need to store in memory anymore!
-        # vector_stores[google_id] = store
+    #     # No need to store in memory anymore!
+    #     # vector_stores[google_id] = store
     
-    def deleteUser(self, google_id: str):
-        collection_name = f"user_{google_id}"
-        try:
-            qdrant.delete_collection(collection_name)
-        except Exception as e:
-            print(f"Error deleting collection: {e}")
+    # def deleteUser(self, google_id: str):
+    #     collection_name = f"user_{google_id}"
+    #     try:
+    #         qdrant.delete_collection(collection_name)
+    #     except Exception as e:
+    #         print(f"Error deleting collection: {e}")

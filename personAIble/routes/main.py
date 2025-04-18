@@ -15,7 +15,7 @@ def landing():
             return redirect(f'/app?uid={user.google_id}')
     return render_template('landing.html')
 
-@main_bp.route('/app')
+@main_bp.route('/app/')
 def main():
     print("MAIN")
     user = get_user_from_request(request, db)

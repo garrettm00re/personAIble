@@ -1,12 +1,7 @@
 from qdrant_client.http import models
 import os
-from .extensions import qdrant, ai_model
-
-
-# @login_manager.user_loader
-# def load_user(user_id: str):
-#     """User loader for Flask-Login"""
-#     return db.get_by_google_id(user_id)
+from clients import qdrant
+from .extensions import ai_model
 
 def create_user_collection(google_id: str, documents):
     collection_name = f"user_{google_id}"

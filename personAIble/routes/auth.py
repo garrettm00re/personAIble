@@ -33,8 +33,11 @@ def google_callback():
 
         user = db.get_by_google_id(google_id)
         if not user:
-            db.save(User(google_id=google_id, email=email, first_name=first_name,
-                        last_name=last_name, profile_pic=picture))
+            user = User(google_id=google_id, email=email, first_name=first_name,
+                        last_name=last_name, profile_pic=picture)
+            db.save(user)
+            qdrant_client.create_user_collection(google_id, [])
+            
         
         # Instead of login_user, encrypt the user ID
         encrypted_id = encrypt_user_id(google_id)

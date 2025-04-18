@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, jsonify, request
 # from flask_login import login_required, current_user
-from ..extensions import db, ai_model
-from utils import consolidateIntoContext, get_onboarding_maps, decrypt_user_id, get_user_from_request
+from ..extensions import db, qdrant_client
+from utils import get_onboarding_maps, get_user_from_request
+from qaModel.loader import getOnboardingDocuments
 
 onboarding_bp = Blueprint('onboarding', __name__)
 
@@ -30,6 +31,9 @@ def submit_onboarding():
     
     try:
         db.finished_onboarding(user)
+        qdrant_client.create_user_collection(user.google_id)
+        documents = getOnboardingDocuments(user.google_id, db, columnToQuestionMap)
+        qdrant_client.add_onboarding_documents(user.google_id, documents)
         return redirect(f"/app/?uid={user.uid}")
     except Exception as e:
         print("EXCEPTION: ", e)
