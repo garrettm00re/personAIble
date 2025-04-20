@@ -7,6 +7,7 @@ api_bp = Blueprint('api', __name__)
 
 @api_bp.route('/api/ask/', methods=['POST'])
 def ask():
+    print("ASKING")
     user = get_user_from_request(request, db)
     if not user:
         return jsonify({'error': 'Not authenticated'}), 401
@@ -22,6 +23,7 @@ def ask():
         return jsonify({'answer': answer})
     
     except Exception as e:
+        print("ERROR: ", e)
         return jsonify({'error': str(e)}), 500
 
 @api_bp.route('/api/followup/', methods=['POST'])

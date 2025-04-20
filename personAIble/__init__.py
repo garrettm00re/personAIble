@@ -7,7 +7,7 @@ from . import userManager  # Import userManager to register the user loader
 # from .sockets import handlers  # Import socket handlers
 import os
 from dotenv import load_dotenv
-from .extensions import socketio, oauth
+from .extensions import oauth # socketio, 
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
     
     # Initialize extensions
-    socketio.init_app(app)
+    # socketio.init_app(app)
     # login_manager.init_app(app)
     # login_manager.login_view = 'main.landing'
     

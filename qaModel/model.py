@@ -8,12 +8,10 @@ from langgraph.graph import START, StateGraph
 from langchain_core.documents import Document
 from typing_extensions import List, TypedDict
 import numpy as np
-import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import os
 from langchain_qdrant import Qdrant
-from clients import qdrant # this must be bad form
 
 class State(TypedDict):
     QA: List[tuple[str, List[str]]] # list of tuples (question, answer(s))
@@ -25,20 +23,16 @@ class State(TypedDict):
     first_name: str
     
 class PersonAIble:
-    def __init__(self):
-        # Initialize once, reuse for all questions
-        self.embeddings = None
-        self.vector_stores = {} # handle multiple users this way (google_id : vector_store). Not a good approach but functional for low # users.
-        self.Ks = {} # google_id : K (length of vector store)
-        self.graph = self._setup_graph()
-        self.embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-        self.llm = ChatOpenAI(model="chatgpt-4o-latest")
-        self.prompt = lambda state: f"""You are {state['first_name']}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
-        Question: {state['question']}
-        Context: {[f"{question} : {answer}" for question, answer in state['context']]}
-        """ 
+    def __init__(self, embeddings: OpenAIEmbeddings, llm: ChatOpenAI, qdrant_client: Qdrant):
         self.API = os.getenv("PRODUCTION_API") if os.getenv("ENV") == "PRODUCTION" else os.getenv("DEVELOPMENT_API")
-        print("MODEL INITIALIZED")
+        self.embeddings = embeddings
+        self.llm = llm
+        self.Ks = {} # google_id : K (length of vector store)
+        self.graph = self._setup_graph()    
+        self.qdrant_client = qdrant_client
+        # user specific variables
+        self.google_id = None
+        self.vector_store = None # self._vector_store()
 
     # NOTE : when implementing "chat history" for context you should add a "timestamp" each message in the database (and also store messages) 
     # you can use the timestamp in a function to compute relevance based on recency
@@ -52,6 +46,22 @@ class PersonAIble:
         graph_builder.add_edge("retrieve", "followUp")
         graph_builder.add_edge("followUp", "generate")
         return graph_builder.compile()
+    
+    def _prompt(self, state: State):
+        return f"""You are {state['first_name']}'s assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
+        Question: {state['question']}
+        Context: {[f"{question} : {answer}" for question, answer in state['context']]}
+        """ 
+    
+    def _vector_store(self):
+        collection_name = f"user_{self.google_id}"
+        # Create Langchain wrapper for collection
+        vector_store = Qdrant(
+            client=self.qdrant_client.client, ### seems like this would be taboo, but I appreciate the convenience of having all of qdrant siloed in one class
+            collection_name=collection_name,
+            embeddings=self.embeddings
+        )
+        return vector_store
     
     def research(self, state: State):
         ## 2-3 questions could be too much or too little. How to decide depending on the request?
@@ -132,44 +142,25 @@ class PersonAIble:
     
     def answer_question(self, question: str, google_id: str, first_name: str) -> str:
         """Main interface for getting answers"""
-        collection_name = f"user_{google_id}"
 
-        if collection_name not in self.vector_stores:
-            return "ERROR: No data found for this user"
-        
-        print("self.graph == None: ", self.graph == None)
+        if self.vector_store is None:
+            self.google_id = google_id
+            self.vector_store = self._vector_store()
+
         result = self.graph.invoke({
             "question": question,
             "google_id": google_id,
             "first_name": first_name,
         })
         return result['answer']
+    
+    
     def answer_question(self, question: str, google_id: str, first_name: str):
-        collection_name = f"user_{google_id}"
-        
-        # Create Langchain wrapper for collection
-        vector_store = Qdrant(
-            client=qdrant,
-            collection_name=collection_name,
-            embeddings=self.embeddings
-        )
-        
         # Use for similarity search
-        docs = vector_store.similarity_search(question)
-        # ... rest of your code ...
+        result = self.graph.invoke({
+            "question": question,
+            "google_id": google_id,
+            "first_name": first_name,
+        })
+        return result['answer']
     
-    # def initUser(self, google_id: str, documents):
-    #     collection_name = f"user_{google_id}"
-        
-    #     # Create and populate collection
-    #     qdrant.create_user_collection(google_id, documents)
-        
-    #     # No need to store in memory anymore!
-    #     # vector_stores[google_id] = store
-    
-    # def deleteUser(self, google_id: str):
-    #     collection_name = f"user_{google_id}"
-    #     try:
-    #         qdrant.delete_collection(collection_name)
-    #     except Exception as e:
-    #         print(f"Error deleting collection: {e}")
