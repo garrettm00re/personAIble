@@ -27,15 +27,24 @@ class PersonAIble:
         self.API = os.getenv("PRODUCTION_API") if os.getenv("ENV") == "PRODUCTION" else os.getenv("DEVELOPMENT_API")
         self.embeddings = embeddings
         self.llm = llm
-        self.Ks = {} # google_id : K (length of vector store)
         self.graph = self._setup_graph()    
         self.qdrant_client = qdrant_client
-        # user specific variables
+
+        # user specific variables -> initialized upon first question asked 
+        self.K = None
         self.google_id = None
         self.vector_store = None # self._vector_store()
 
     # NOTE : when implementing "chat history" for context you should add a "timestamp" each message in the database (and also store messages) 
     # you can use the timestamp in a function to compute relevance based on recency
+    
+    def _init(self, google_id: str):
+        self.google_id = google_id
+        self.vector_store = self._vector_store()
+        self.K = self._get_K()
+
+    def _get_K(self):
+        return self.qdrant_client.client.count(collection_name=f"user_{self.google_id}")
     
     def _setup_graph(self):
         # research, retrieve, followup, generate
@@ -72,7 +81,6 @@ class PersonAIble:
         Rules: \
         - If there are no questions, return exactly 'NA'. \
         "
-
         response = self.llm.invoke(prompt)
         questions = response.content.split("\n") if response.content != "NA" else []
         desiredInformation = [question for question in questions] + [state["question"]]
@@ -80,14 +88,12 @@ class PersonAIble:
 
     def retrieve(self, state: State, minRelevance = 0.4, numStdDev = 2):
         def getMostRelevant(question):
-            raw_results = vector_store.similarity_search_with_score(question, k = K)
+            raw_results = self.vector_store.similarity_search_with_score(question, k = self.K)
             scores = np.array([cosine_similarity for _, cosine_similarity in raw_results])
             mean = np.mean(scores)
             std = np.std(scores)
             return [raw_results[i][0] for i in np.where(scores >= mean + (std*numStdDev))[0] if raw_results[i][1] >= minRelevance]
         
-        vector_store = self.vector_stores[state["google_id"]]
-        K = self.Ks[state["google_id"]]
         desiredInformation = state["desiredInformation"]
         qa_pairs = []
         with ThreadPoolExecutor() as executor:
@@ -105,14 +111,15 @@ class PersonAIble:
                 for result in results:
                     context.append(result.page_content)
                 qa_pairs.append((question, context))
+
         return {"QA": qa_pairs}
     
     def followUp(self, state: State):
         print("FOLLOWUP")
         allQA = state["QA"]
-        print("ALLQA: ", allQA)
         for idx, QA in enumerate(allQA):
             if QA[1] == [] and QA[0] != state["question"]:
+                
                 # Get answer from askUser endpoint
                 response = requests.post(
                     self.API + '/api/followup',
@@ -127,25 +134,21 @@ class PersonAIble:
                     document = Document(page_content=summary, metadata={"source": "followup"})
 
                     ### MAY NEED A LOCK HERE
-                    self.vector_stores[state["google_id"]].add_documents([document])
-                    self.Ks[state["google_id"]] += 1
+                    self.vector_store.add_documents([document])
+                    self.K += 1
     
         return {"context": allQA}
     
     def generate(self, state: State):
-        print('generating')
         prompt = self.prompt(state)
         response = self.llm.invoke(prompt)
-        #self.chat_history.append({"question": state["question"], "answer": response.content})
-
         return {"answer": response.content}
     
     def answer_question(self, question: str, google_id: str, first_name: str) -> str:
         """Main interface for getting answers"""
 
         if self.vector_store is None:
-            self.google_id = google_id
-            self.vector_store = self._vector_store()
+            self._init(google_id)
 
         result = self.graph.invoke({
             "question": question,
@@ -153,14 +156,3 @@ class PersonAIble:
             "first_name": first_name,
         })
         return result['answer']
-    
-    
-    def answer_question(self, question: str, google_id: str, first_name: str):
-        # Use for similarity search
-        result = self.graph.invoke({
-            "question": question,
-            "google_id": google_id,
-            "first_name": first_name,
-        })
-        return result['answer']
-    

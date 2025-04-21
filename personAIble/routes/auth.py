@@ -1,9 +1,8 @@
 from flask import Blueprint, redirect, url_for, current_app, request
 #from flask_login import login_user, login_required, logout_user, current_user
-from ..extensions import oauth, db
+from ..extensions import oauth, db, qdrant_client
 from user import User
 from utils import encrypt_user_id, decrypt_user_id, get_user_from_request
-
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/auth/google')
@@ -36,9 +35,7 @@ def google_callback():
             user = User(google_id=google_id, email=email, first_name=first_name,
                         last_name=last_name, profile_pic=picture)
             db.save(user)
-            qdrant_client.create_user_collection(google_id, [])
             
-        
         # Instead of login_user, encrypt the user ID
         encrypted_id = encrypt_user_id(google_id)
         
