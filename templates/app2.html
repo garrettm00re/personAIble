@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}personAIble{% endblock %}
+{% block title %}personAIble - main{% endblock %}
 
 {% block head %}
 {% endblock %}
@@ -11,15 +11,12 @@
     <div id="root" class="content">
         {% include 'components/qa_interface.html' %}
     </div>
-    <!-- <input type="hidden" id="user_id" value="{{ user_id }}"> -->
-    <!-- <div id="settings" class="content hidden">Settings Page Content</div> -->
+
     <script type="module" src="{{ url_for('static', filename='js/keybindings.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/formatters.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/dataManager.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/chat.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/navigation.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script type="module" src="{{ url_for('static', filename='js/sockets.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/followup.js') }}"></script>
 {% endblock %}

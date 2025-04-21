@@ -20,10 +20,13 @@ def main():
     print("MAIN")
     user = get_user_from_request(request, db)
     if not user:
+        print("REDIRECTING TO LANDING")
         return redirect('/')
     
     if not user.onboarded:
+        print("REDIRECTING TO ONBOARDING")
         return redirect(f'/onboarding?uid={user.google_id}')
     # return render_template('app2.html', user_id=user.google_id)
+    print("RENDERING APP")
     return render_template('app2.html')
  

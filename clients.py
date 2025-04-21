@@ -18,14 +18,23 @@ class qdrant():
         self.embeddings = embeddings
 
     def create_user_collection(self, google_id):
+        collection_name = f"user_{google_id}"
         try:
+            # First try to delete if it exists (ignore errors if it doesn't)
+            try:
+                self.client.delete_collection(collection_name)
+            except:
+                pass
+            
+            # Create new collection with correct dimensions
             self.client.create_collection(
-                collection_name=f"user_{google_id}",
+                collection_name=collection_name,
                 vectors_config=VectorParams(size=self.embeddingDimension, distance=self.distance),
                 timeout=10
             )
         except Exception as e:
             print(f"Error creating collection: {e}")
+            raise e
     
     def add_onboarding_documents(self, google_id, documents):
         # Convert to vectors and points

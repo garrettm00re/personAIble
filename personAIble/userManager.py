@@ -10,7 +10,7 @@ def create_user_collection(google_id: str, documents):
     qdrant.recreate_collection(
         collection_name=collection_name,
         vectors_config=models.VectorParams(
-            size=os.getenv("EMBEDDING_SIZE"),  # OpenAI embedding size
+            size=int(os.getenv("EMBEDDING_SIZE")),  # OpenAI embedding size
             distance=models.Distance.COSINE
         )
     )

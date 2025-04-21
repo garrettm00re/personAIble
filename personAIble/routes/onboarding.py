@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, jsonify, request
 # from flask_login import login_required, current_user
 from ..extensions import db, qdrant_client
-from utils import get_onboarding_maps, get_user_from_request
+from utils import get_onboarding_maps, get_user_from_request, encrypt_user_id
 from qaModel.loader import getOnboardingDocuments
 
 onboarding_bp = Blueprint('onboarding', __name__)
@@ -31,13 +31,18 @@ def submit_onboarding():
     
     try:
         db.finished_onboarding(user)
+        print("CREATING USER COLLECTION")
         qdrant_client.create_user_collection(user.google_id)
+        print("GETTING ONBOARDING DOCUMENTS")
         documents = getOnboardingDocuments(user.google_id, db, columnToQuestionMap)
+        print("ADDING ONBOARDING DOCUMENTS TO QDRANT")
         qdrant_client.add_onboarding_documents(user.google_id, documents)
-        return redirect(f"/app/?uid={user.uid}")
+        print("REDIRECTING TO APP")
+        return redirect(url_for('main.main', uid=encrypt_user_id(user.google_id), _external=True))
+    
     except Exception as e:
         print("EXCEPTION: ", e)
-        return jsonify({'error': 'Invalid authentication'}), 401
+        return jsonify({'error': str(e)}), 500
 
 @onboarding_bp.route('/onboarding/store/', methods=['POST'])
 def store_onboarding_answer():
@@ -50,7 +55,6 @@ def store_onboarding_answer():
         data = request.json
         column_name = questionToColumnMap[data['question'].strip()]
         user = db.get_by_google_id(user.google_id)
-        # summary = consolidateIntoContext(data['question'], data['answer'], user.first_name, ai_model.llm)
         
         db.addOnboardingQA(
             column_name=column_name,

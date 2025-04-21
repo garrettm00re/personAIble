@@ -115,11 +115,10 @@ class PersonAIble:
         return {"QA": qa_pairs}
     
     def followUp(self, state: State):
-        print("FOLLOWUP")
         allQA = state["QA"]
         for idx, QA in enumerate(allQA):
             if QA[1] == [] and QA[0] != state["question"]:
-                
+
                 # Get answer from askUser endpoint
                 response = requests.post(
                     self.API + '/api/followup',

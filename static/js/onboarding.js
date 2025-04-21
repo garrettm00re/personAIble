@@ -66,23 +66,13 @@ export async function initializeOnboarding() {
             // Show completion message or handle end of onboarding
             setTimeout(() => {
                 addMessage("Great, thank you " + userFirstName + "! Let's get started!", 'system');
-                // Option 2: Wait for success (if you want to ensure the POST worked)
-                setTimeout(async () => {
-                    try {
-                        const response = await fetch(`/onboarding/submit/?uid=${userId}`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        // if (response.ok) {
-                        //     window.location.href = '/app';
-                        // }
-                    } catch (error) {
-                        console.error('Error:', error);
-                    }
-                }, onboardingDelay);
             }, onboardingDelay);
+            // Create and submit a POST form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/onboarding/submit/?uid=${userId}`;
+            document.body.appendChild(form);
+            form.submit();
         }
     };
 }
