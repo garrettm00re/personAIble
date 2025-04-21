@@ -11,7 +11,7 @@ import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import os
-from langchain_qdrant import Qdrant
+from langchain_qdrant import QdrantVectorStore
 
 class State(TypedDict):
     QA: List[tuple[str, List[str]]] # list of tuples (question, answer(s))
@@ -23,7 +23,7 @@ class State(TypedDict):
     first_name: str
     
 class PersonAIble:
-    def __init__(self, embeddings: OpenAIEmbeddings, llm: ChatOpenAI, qdrant_client: Qdrant):
+    def __init__(self, embeddings: OpenAIEmbeddings, llm: ChatOpenAI, qdrant_client):
         self.API = os.getenv("PRODUCTION_API") if os.getenv("ENV") == "PRODUCTION" else os.getenv("DEVELOPMENT_API")
         self.embeddings = embeddings
         self.llm = llm
@@ -44,7 +44,8 @@ class PersonAIble:
         self.K = self._get_K()
 
     def _get_K(self):
-        return self.qdrant_client.client.count(collection_name=f"user_{self.google_id}")
+        count_result = self.qdrant_client.client.count(collection_name=f"user_{self.google_id}")
+        return count_result.count  # Access the count attribute
     
     def _setup_graph(self):
         # research, retrieve, followup, generate
@@ -65,10 +66,10 @@ class PersonAIble:
     def _vector_store(self):
         collection_name = f"user_{self.google_id}"
         # Create Langchain wrapper for collection
-        vector_store = Qdrant(
-            client=self.qdrant_client.client, ### seems like this would be taboo, but I appreciate the convenience of having all of qdrant siloed in one class
+        vector_store = QdrantVectorStore(
+            client=self.qdrant_client.client,
             collection_name=collection_name,
-            embeddings=self.embeddings
+            embedding=self.embeddings
         )
         return vector_store
     

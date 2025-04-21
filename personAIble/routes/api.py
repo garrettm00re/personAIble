@@ -35,6 +35,7 @@ def handle_followup():
         token = auth_header.split(' ')[1]
         return token == os.environ.get('FOLLOW_UP')
     
+    print("FOLLOWUP CALLED")    
     if not is_authorized():
         return jsonify({'error': 'Invalid authorization token'}), 401
 
@@ -74,6 +75,7 @@ def submit_followup():
     if not user:
         return jsonify({'error': 'Not authenticated'}), 401
     
+    print("SUBMITTING FOLLOWUP")
     try:
         data = request.json
         answer = data.get('answer')

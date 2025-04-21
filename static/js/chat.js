@@ -1,3 +1,5 @@
+import { startFollowupPolling, stopFollowupPolling } from './followup.js';
+
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('uid');
 
@@ -59,6 +61,11 @@ export function addMessage(text, type, isFollowUp = false) {
     message.className = `message ${type}-message`;
     
     if (isFollowUp) {
+        if (type === 'system') {
+            startFollowupPolling(); // look for response if system initializes followup
+        } else {
+            stopFollowupPolling(); // stop polling if user replies to followup
+        }
         message.className += ' follow-up';
         // Add a visual indicator for follow-up messages
         const followUpIndicator = document.createElement('span');
